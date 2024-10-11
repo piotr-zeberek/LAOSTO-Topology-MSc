@@ -37,7 +37,7 @@ plt.rcParams.update(
         "figure.dpi": 300,
         "savefig.dpi": 300,
         "mathtext.fontset": "cm",
-        # "text.usetex": True,
+        "text.usetex": True,
         "font.family": "Computer Modern Roman",
     }
 )
@@ -92,6 +92,9 @@ def save_plot(filename, bbox_inches="tight", plot_dir=plot_dir, dpi=300):
 
 ##########################
 
+def symlog10(x):
+    return np.sign(x) * np.log10((np.abs(x) + 1.0))
+
 
 # def get_vertical_slice(x, y, z, axis, offset=0.0):
 #     ux = np.unique(x)
@@ -114,16 +117,16 @@ def save_plot(filename, bbox_inches="tight", plot_dir=plot_dir, dpi=300):
 #             raise ValueError("Invalid axis")
 
 
-# slice
-k, *energies = load_data("BS.dat")
-for band_idx, E in enumerate(energies):
-    plt.plot(k, E)
+# # slice
+# k, *energies = load_data("BS.dat")
+# for band_idx, E in enumerate(energies):
+#     plt.plot(k, E)
 
-plt.xlim(-1.2, 1.2)
-plt.ylim(-5, 5)
-set_labels(r"$k_x\ (1/a)$ ", r"$E$ (meV)", r"$\mu = 0.0$ meV, $k_y = 0.0$")
-plt.grid()
-save_plot("BS.png")
+# plt.xlim(-1.2, 1.2)
+# plt.ylim(-5, 5)
+# set_labels(r"$k_x\ (1/a)$ ", r"$E$ (meV)", r"$\mu = 0.0$ meV, $k_y = 0.0$")
+# plt.grid()
+# save_plot("BS.png")
 
 # #2D
 # kx, ky, *energies = load_data("BS.dat")
@@ -197,7 +200,8 @@ save_plot("BS.png")
 # save_plot("mu_Cs_denser2.png")
 
 # Chern numbers vs mu and BZ grid
-mu, Bz, *Cs = load_data("mu_Bz_Cs.dat")
+# mu, Bz, *Cs = load_data("mu_Bz_Cs.dat")
+mu, Bz, *Cs = np.loadtxt("check_model/mu_Bz_Cs.dat", unpack=True)
 Cs = np.sum(Cs[:2], axis=0)
 Z, e = prep_image_data(mu, Bz, Cs)
 
@@ -205,9 +209,16 @@ Z, e = prep_image_data(mu, Bz, Cs)
 # Z=np.pad(Z,((150, 75),(100,100)), mode='constant', constant_values=np.nan)
 # e=[-1.0, 1.0, -0.5, 0.5]
 
-plt.imshow(Z, extent=e, origin="lower", aspect="auto", cmap="RdBu", vmin=-1, vmax=1)
+def Bz_vs_mu_theo(mu, delta=0.2):
+    return np.sqrt(mu**2 + delta**2)*0.03674932587122423*0.001/(0.5*0.5*(-50))/4.254382e-6
+
+plt.imshow(Z, extent=e, origin="lower", aspect="auto", cmap="bwr", vmin=-1, vmax=1)
+plt.plot(mu, Bz_vs_mu_theo(mu), linewidth=0.8, color="black", label="Theoretical border")
+plt.plot(mu, -Bz_vs_mu_theo(mu), linewidth=0.8, color="black")
+plt.ylim(-0.5, 0.5)
+plt.legend(bbox_to_anchor=(0.35, 0.62), loc='upper left')
 plt.colorbar()
-set_labels(r"$\mu$ (meV)", r"$B_z$ (T)", r"Chern Number for BZ grid $2000 \times 2000$")
+set_labels(r"$\mu$ (meV)", r"$B_z$ (T)", r"Chern Number")
 save_plot("mu_Bz_Cs.png")
 
 # # Berry Curvature
