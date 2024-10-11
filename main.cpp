@@ -8,7 +8,7 @@
 #include <unsupported/Eigen/KroneckerProduct>
 
 // LAO/STO 001
-int main()
+int main2()
 {
     Parameters p;
 
@@ -103,22 +103,22 @@ int main()
     std::size_t n_sparse = 1500; // number of k-points in each direction - even,
                                  // Eigen::Vector2<std::size_t> NBZ{n, n}; // BZ mesh size
 
-    // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(10001, -0.5, 0.5);
-    // sys.printBandStructureSlice("data/BS.dat", kx_vec, 0, 0.0);
+    Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(10001, -0.5, 0.5);
+    sys.printBandStructureSlice("data/BS.dat", kx_vec, 0, 0.0);
 
-    std::ofstream mu_Cs_file("data/mu_Cs.dat");
+    // std::ofstream mu_Cs_file("data/mu_Cs.dat");
 
-    // double mu_max = meV2au(6);
-    // Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(481, -mu_max, mu_max);
-    Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(9, meV2au(-3.5), meV2au(-3.1));
+    // // double mu_max = meV2au(6);
+    // // Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(481, -mu_max, mu_max);
+    // Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(9, meV2au(-3.5), meV2au(-3.1));
 
-    for (auto i = 0; i < mu_vec.size(); ++i)
-    {
-        sys._p.mu = mu_vec(i);
-        // sys.printBandStructureSlice("data/BS" + std::to_string(i) + ".dat", kx_vec, 0, 0.0);
-        // mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
-        std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
-    }
+    // for (auto i = 0; i < mu_vec.size(); ++i)
+    // {
+    //     sys._p.mu = mu_vec(i);
+    //     // sys.printBandStructureSlice("data/BS" + std::to_string(i) + ".dat", kx_vec, 0, 0.0);
+    //     // mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
+    //     std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
+    // }
 
     // {
     //     double mu_max = meV2au(0.25);
@@ -155,9 +155,9 @@ int main()
 
     // sys.printBerryCurvature("data/BC.dat", dvxHBdG_num, dvyHBdG_num, kx_vec_BC, ky_vec_BC);
 
-    std::size_t n_k = 2001;
-    Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -0.3, 0.3);
-    Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -0.3, 0.3);
+    // std::size_t n_k = 2001;
+    // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -0.3, 0.3);
+    // Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -0.3, 0.3);
 
     // sys._p.mu = meV2au(0.0);
 
@@ -167,24 +167,24 @@ int main()
     // sys.setHamiltonian(HBdG);
     // sys.printBandStructure("data/BS_SC.dat", kx_vec, ky_vec);
 
-    sys.setHamiltonian(HBdG);
-    sys.printGap("data/gap.dat", kx_vec, kx_vec);
+    // sys.setHamiltonian(HBdG);
+    // sys.printGap("data/gap.dat", kx_vec, kx_vec);
 
-    sys._p.mu = meV2au(-3.0);
-    sys.setHamiltonian(Hk);
-    auto FS = sys.findFSContours();
-    sys.setHamiltonian(HBdG);
+    // sys._p.mu = meV2au(-3.0);
+    // sys.setHamiltonian(Hk);
+    // auto FS = sys.findFSContours();
+    // sys.setHamiltonian(HBdG);
 
-    for (auto ic = 0; ic < FS.size(); ++ic)
-    {
-        sys.printGapAlongContour("data/gap_FS" + std::to_string(ic) + ".dat", FS[ic]);
-    }
+    // for (auto ic = 0; ic < FS.size(); ++ic)
+    // {
+    //     sys.printGapAlongContour("data/gap_FS" + std::to_string(ic) + ".dat", FS[ic]);
+    // }
 
     return 0;
 }
 
 // check model
-int main2()
+int main()
 {
     Parameters p;
 
@@ -251,63 +251,85 @@ int main2()
     auto dvyHBdG_num2 = [HBdG, dk](const Point2D &k, const Parameters &p) -> Eigen::MatrixXcd
     { return (-HBdG(k + Point2D{0.0, 2.0 * dk}, p) + 8.0 * HBdG(k + Point2D{0.0, dk}, p) - 8.0 * HBdG(k - Point2D{0.0, dk}, p) + HBdG(k - Point2D{0.0, 2.0 * dk}, p)) / (12.0 * dk); };
 
-    std::size_t n = 100;                   // number of k-points in each direction - even, 500 is enough for speed, >=1000 better
-    Eigen::Vector2<std::size_t> NBZ{n, n}; // BZ mesh size
-
-    System2D sys(HBdG, p);
-
-    // Eigen::VectorXd kx_vec_BS = Eigen::VectorXd::LinSpaced(2001, -M_PI, M_PI);
-    // sys.printBandStructureSlice("data/BS.dat", kx_vec_BS, 0, 0.0);
-
-    std::ofstream mu_Cs_file("data/mu_Cs.dat");
-    // std::ofstream mu_Cs_BC_file("data/mu_Cs_BC.dat");
-
-    double mu_max = meV2au(4.0);
-    Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(201, -mu_max, mu_max);
-
-    for (auto i = 0; i < mu_vec.size(); ++i)
+    // BS
     {
-        sys._p.mu = mu_vec(i);
-        // sys.printBandStructureSlice("data/BS" + std::to_string(i) + ".dat", kx_vec_BS, 0, 0.0);
-        mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbers(NBZ).transpose() << std::endl;
-        // mu_Cs_BC_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersFromBCMT(NBZ, dvxHBdG_num, dvyHBdG_num).transpose() << std::endl;
-        std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
+        System2D sys(HBdG, p);
+
+        sys._p.mu = meV2au(-1.0);
+
+        Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(2001, -M_PI, M_PI);
+        sys.printBandStructureSlice("data/BS.dat", kx_vec, 0, 0.0);
     }
 
-    // sys._p.mu = meV2au(-2.89);
+    // Chern numbers vs mu
+    {
+        // System2D sys(HBdG, p);
+        // std::size_t n = 100;                   // number of k-points in each direction - even, 500 is enough for speed, >=1000 better
+        // Eigen::Vector2<std::size_t> NBZ{n, n}; // BZ mesh size
 
-    // std::size_t n_k = 2001;
-    // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -M_PI, M_PI);
-    // Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -M_PI, M_PI);
+        // Eigen::VectorXd kx_vec_BS = Eigen::VectorXd::LinSpaced(2001, -M_PI, M_PI);
+        // sys.printBandStructureSlice("data/BS.dat", kx_vec_BS, 0, 0.0);
 
-    // // analityczne pochodne - jest zle chyba
-    // sys.printBerryCurvature("data/BC.dat", dvxHBdG, dvyHBdG, kx_vec, ky_vec);
+        // std::ofstream mu_Cs_file("data/mu_Cs.dat");
+        // // std::ofstream mu_Cs_BC_file("data/mu_Cs_BC.dat");
 
-    // sys.printBerryCurvature("data/BC_num.dat", dvxHBdG_num, dvyHBdG_num, kx_vec, ky_vec);
-    // sys.printBerryCurvature("data/BC_num2.dat", dvxHBdG_num2, dvyHBdG_num2, kx_vec, ky_vec);
+        // double mu_max = meV2au(4.0);
+        // Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(201, -mu_max, mu_max);
 
-    // {
-    //     double mu_max = meV2au(0.25);
-    //     double Bz_max = T2au(0.2);
+        // for (auto i = 0; i < mu_vec.size(); ++i)
+        // {
+        //     sys._p.mu = mu_vec(i);
+        //     // sys.printBandStructureSlice("data/BS" + std::to_string(i) + ".dat", kx_vec_BS, 0, 0.0);
+        //     mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbers(NBZ).transpose() << std::endl;
+        //     // mu_Cs_BC_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersFromBCMT(NBZ, dvxHBdG_num, dvyHBdG_num).transpose() << std::endl;
+        //     std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
+        // }
+    }
 
-    //     Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(51, meV2au(-0.2), meV2au(0.2));
-    //     Eigen::VectorXd Bz_vec = Eigen::VectorXd::LinSpaced(26, T2au(0.1), T2au(0.2));
+    // BC
+    {
+        // System2D sys(HBdG, p);
+        // sys._p.mu = meV2au(-2.89);
 
-    //     std::ofstream mu_Bz_Cs_file("data/mu_Bz_Cs.dat");
+        // std::size_t n_k = 2001;
+        // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -M_PI, M_PI);
+        // Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -M_PI, M_PI);
 
-    //     for (auto i = 0; i < mu_vec.size(); ++i)
-    //     {
-    //         for (auto j = 0; j < Bz_vec.size(); ++j)
-    //         {
-    //             sys._p.mu = mu_vec(i);
-    //             sys._p.Bz = Bz_vec(j);
-    //             mu_Bz_Cs_file << mu_vec(i) / meV2au(1.0) << "\t"
-    //                           << Bz_vec(j) / T2au(1.0) << "\t"
-    //                           << sys.calcChernNumbersMT(NBZ).transpose() << "\n";
-    //             std::cout << i * Bz_vec.size() + j + 1 << " out of " << mu_vec.size() * Bz_vec.size() << std::endl;
-    //         }
-    //     }
-    // }
+        // // analityczne pochodne - jest zle chyba
+        // sys.printBerryCurvature("data/BC.dat", dvxHBdG, dvyHBdG, kx_vec, ky_vec);
+
+        // sys.printBerryCurvature("data/BC_num.dat", dvxHBdG_num, dvyHBdG_num, kx_vec, ky_vec);
+        // sys.printBerryCurvature("data/BC_num2.dat", dvxHBdG_num2, dvyHBdG_num2, kx_vec, ky_vec);
+    }
+
+    // Chern numbers vs mu and Bz
+    {
+        System2D sys(HBdG, p);
+
+        std::size_t n_dense = 1000;  // number of k-points in each direction - even,
+        std::size_t n_sparse = 500; // number of k-points in each direction - even,
+
+        double mu_max = meV2au(1.0);
+        double Bz_max = T2au(0.5);
+
+        Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(201, -mu_max, mu_max);
+        Eigen::VectorXd Bz_vec = Eigen::VectorXd::LinSpaced(201, -Bz_max, Bz_max);
+
+        std::ofstream mu_Bz_Cs_file("data/mu_Bz_Cs.dat");
+
+        for (auto i = 0; i < mu_vec.size(); ++i)
+        {
+            for (auto j = 0; j < Bz_vec.size(); ++j)
+            {
+                sys._p.mu = mu_vec(i);
+                sys._p.Bz = Bz_vec(j);
+                mu_Bz_Cs_file << mu_vec(i) / meV2au(1.0) << "\t"
+                              << Bz_vec(j) / T2au(1.0) << "\t"
+                              << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 1.2).transpose() << "\n";
+                std::cout << i * Bz_vec.size() + j + 1 << " out of " << mu_vec.size() * Bz_vec.size() << std::endl;
+            }
+        }
+    }
 
     // std::size_t n_k = 2001;
     // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -1.5, 1.5);

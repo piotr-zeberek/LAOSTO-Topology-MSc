@@ -57,3 +57,5 @@ plot/
 *.zip
 LAOSTO/
 check_model/
+Eigen/
+unsupported/

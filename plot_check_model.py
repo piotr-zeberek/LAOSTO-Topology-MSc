@@ -37,7 +37,7 @@ plt.rcParams.update(
         "figure.dpi": 300,
         "savefig.dpi": 300,
         "mathtext.fontset": "cm",
-        "text.usetex": True,
+        # "text.usetex": True,
         "font.family": "Computer Modern Roman",
     }
 )
@@ -93,37 +93,37 @@ def save_plot(filename, bbox_inches="tight", plot_dir=plot_dir, dpi=300):
 ##########################
 
 
-def get_vertical_slice(x, y, z, axis, offset=0.0):
-    ux = np.unique(x)
-    uy = np.unique(y)
+# def get_vertical_slice(x, y, z, axis, offset=0.0):
+#     ux = np.unique(x)
+#     uy = np.unique(y)
 
-    match axis:
-        case "x":
-            diff = np.abs(ux - offset)
-            val = ux[np.argmin(diff)]
+#     match axis:
+#         case "x":
+#             diff = np.abs(ux - offset)
+#             val = ux[np.argmin(diff)]
 
-            return uy, z[x == val]
+#             return uy, z[x == val]
 
-        case "y":
-            diff = np.abs(uy - offset)
-            val = uy[np.argmin(diff)]
+#         case "y":
+#             diff = np.abs(uy - offset)
+#             val = uy[np.argmin(diff)]
 
-            return ux, z[y == val]
+#             return ux, z[y == val]
 
-        case _:
-            raise ValueError("Invalid axis")
+#         case _:
+#             raise ValueError("Invalid axis")
 
 
-# # slice
-# k, *energies = load_data("BS.dat")
-# for band_idx, E in enumerate(energies):
-#     plt.plot(k, E)
+# slice
+k, *energies = load_data("BS.dat")
+for band_idx, E in enumerate(energies):
+    plt.plot(k, E)
 
-# # plt.xlim(-0.2, 0.2)
-# plt.ylim(-5, 5)
-# set_labels(r"$k_x\ (1/a)$ ", r"$E$ (meV)", r"$\mu = 0.0$ meV, $k_y = 0.0$")
-# plt.grid()
-# save_plot("BS.png")
+plt.xlim(-1.2, 1.2)
+plt.ylim(-5, 5)
+set_labels(r"$k_x\ (1/a)$ ", r"$E$ (meV)", r"$\mu = 0.0$ meV, $k_y = 0.0$")
+plt.grid()
+save_plot("BS.png")
 
 # #2D
 # kx, ky, *energies = load_data("BS.dat")
@@ -163,22 +163,22 @@ def get_vertical_slice(x, y, z, axis, offset=0.0):
 # save_plot(f"transition.png")
 
 # Chern numbers vs mu
-mu, *Cs = load_data("mu_Cs.dat")
-# mu, *Cs = np.loadtxt("LAOSTO/mu_Cs/denser/mu_Cs.dat", unpack=True)
+# mu, *Cs = load_data("mu_Cs.dat")
+# # mu, *Cs = np.loadtxt("LAOSTO/mu_Cs/denser/mu_Cs.dat", unpack=True)
 
-# for i in range(3):
-#     C = np.sum(Cs[i * 2 : (i + 1) * 2], axis=0)
-#     plt.plot(mu, C, label=i)
+# # for i in range(3):
+# #     C = np.sum(Cs[i * 2 : (i + 1) * 2], axis=0)
+# #     plt.plot(mu, C, label=i)
 
-# for i,C in enumerate(Cs):
-#     plt.plot(mu, C, label=f"{i}")
+# # for i,C in enumerate(Cs):
+# #     plt.plot(mu, C, label=f"{i}")
 
-plt.plot(mu, np.sum(Cs[:2], axis=0))
+# plt.plot(mu, np.sum(Cs[:2], axis=0))
 
-set_labels(r"$\mu$ (meV)", r"$C$", r"Chern Number for BZ grid $500 \times 500$")
-plt.grid(alpha=0.5)
-# plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Band")
-save_plot("mu_Cs.png")
+# set_labels(r"$\mu$ (meV)", r"$C$", r"Chern Number for BZ grid $500 \times 500$")
+# plt.grid(alpha=0.5)
+# # plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', title="Band")
+# save_plot("mu_Cs.png")
 
 # # Chern numbers vs mu link and BC
 # fig, axes = plt.subplots(1, 2, sharex=True, figsize=(5, 2.7))
@@ -197,18 +197,18 @@ save_plot("mu_Cs.png")
 # save_plot("mu_Cs_denser2.png")
 
 # Chern numbers vs mu and BZ grid
-# mu, Bz, *Cs = load_data("mu_Bz_Cs.dat")
-# Cs = np.sum(Cs[:2], axis=0)
-# Z, e = prep_image_data(mu, Bz, Cs)
+mu, Bz, *Cs = load_data("mu_Bz_Cs.dat")
+Cs = np.sum(Cs[:2], axis=0)
+Z, e = prep_image_data(mu, Bz, Cs)
 
 # # padding do rysowanie dna
-# # Z=np.pad(Z,((150, 75),(100,100)), mode='constant', constant_values=np.nan)
-# # e=[-1.0, 1.0, -0.5, 0.5]
+# Z=np.pad(Z,((150, 75),(100,100)), mode='constant', constant_values=np.nan)
+# e=[-1.0, 1.0, -0.5, 0.5]
 
-# plt.imshow(Z, extent=e, origin="lower", aspect="auto", cmap="RdBu", vmin=-2, vmax=2)
-# plt.colorbar()
-# set_labels(r"$\mu$ (meV)", r"$B_z$ (T)", r"Chern Number for BZ grid $2000 \times 2000$")
-# save_plot("mu_Bz_Cs.png")
+plt.imshow(Z, extent=e, origin="lower", aspect="auto", cmap="RdBu", vmin=-1, vmax=1)
+plt.colorbar()
+set_labels(r"$\mu$ (meV)", r"$B_z$ (T)", r"Chern Number for BZ grid $2000 \times 2000$")
+save_plot("mu_Bz_Cs.png")
 
 # # Berry Curvature
 # for i, filename in enumerate(["BC.dat", "BC_num.dat", "BC_num2.dat"]):

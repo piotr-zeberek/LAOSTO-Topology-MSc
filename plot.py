@@ -94,39 +94,39 @@ def save_plot(filename, dpi=300, bbox_inches="tight", plot_dir=plot_dir):
 ##########################
 
 
-def get_vertical_slice(x, y, z, axis, offset=0.0):
-    ux = np.unique(x)
-    uy = np.unique(y)
+# def get_vertical_slice(x, y, z, axis, offset=0.0):
+#     ux = np.unique(x)
+#     uy = np.unique(y)
 
-    match axis:
-        case "x":
-            diff = np.abs(ux - offset)
-            val = ux[np.argmin(diff)]
+#     match axis:
+#         case "x":
+#             diff = np.abs(ux - offset)
+#             val = ux[np.argmin(diff)]
 
-            return uy, z[x == val]
+#             return uy, z[x == val]
 
-        case "y":
-            diff = np.abs(uy - offset)
-            val = uy[np.argmin(diff)]
+#         case "y":
+#             diff = np.abs(uy - offset)
+#             val = uy[np.argmin(diff)]
 
-            return ux, z[y == val]
+#             return ux, z[y == val]
 
-        case _:
-            raise ValueError("Invalid axis")
+#         case _:
+#             raise ValueError("Invalid axis")
 
 
-# # slice
-# k, *energies = load_data(f"BS.dat")
-# for band_idx, E in enumerate(energies):
-#     plt.plot(k, E)
+# slice
+k, *energies = load_data(f"BS.dat")
+for band_idx, E in enumerate(energies):
+    plt.plot(k, E)
 
-# # plt.xlim(-0.2, 0.2)
-# # plt.ylim(-0.5, 0.5)
-# # plt.ylim(-5, 5)
-# plt.ylim(-50, 50)
-# set_labels(r"$k_x\ (1/a)$ ", r"$E$ (meV)", r"$\mu = 0.0$ meV, $k_y = 0.0$")
-# plt.grid()
-# save_plot("BS.png")
+# plt.xlim(-0.2, 0.2)
+# plt.ylim(-0.5, 0.5)
+# plt.ylim(-5, 5)
+plt.ylim(-50, 50)
+set_labels(r"$k_x\ (1/a)$ ", r"$E$ (meV)", r"$\mu = 0.0$ meV, $k_y = 0.0$")
+plt.grid()
+save_plot("BS.png")
 
 # #2D
 # kx, ky, *energies = load_data("BS.dat")
@@ -249,23 +249,24 @@ def get_vertical_slice(x, y, z, axis, offset=0.0):
 
 
 
-# Gap as a function of momentum
-kx, ky, *gaps = load_data("gap.dat")
-kxu, kyu = np.unique(kx), np.unique(ky)
-gap = gaps[0]
+# # Gap as a function of momentum
+# kx, ky, *gaps = load_data("gap.dat")
+# kxu, kyu = np.unique(kx), np.unique(ky)
+# gap = gaps[0]
 
-idx=np.argmin(gap)
-print(kx[idx], ky[idx], gap[idx])
-# kxe, kye, *energies = load_data("BS.dat")
-# kxe, kye = np.meshgrid(np.unique(kx), np.unique(ky), indexing="ij")
+# # kxe, kye, *energies = load_data("BS.dat")
+# # kxe, kye = np.meshgrid(np.unique(kx), np.unique(ky), indexing="ij")
 
-Z, e = prep_image_data(kx, ky, gap)
-plt.imshow(Z, extent=e, origin="lower", aspect="equal", cmap='jet' , vmin=0)
-plt.scatter(kx[idx], ky[idx], color="red", s=2)
-plt.colorbar()
+# Z, e = prep_image_data(kx, ky, gap)
+# plt.imshow(Z, extent=e, origin="lower", aspect="equal", cmap='jet' , vmin=0)
+# plt.colorbar()
 
-set_labels(r"$k_x$", r"$k_y$", r"Gap (meV)")
-save_plot("gap.png")
+# set_labels(r"$k_x$", r"$k_y$", r"Gap (meV)")
+# save_plot("gap.png")
+
+
+
+
 
 # # for gap interpolation
 # import scipy as scp
@@ -341,61 +342,52 @@ save_plot("gap.png")
     
     
     
-## FS contour
-n_contours=3
-for i in range(n_contours):
-    kx,ky, *_ = load_data(f"gap_FS{i}.dat")
-    plt.plot(kx, ky, label=f"{i}")
+# ## FS contour
+# n_contours=3
+# for i in range(n_contours):
+#     kx,ky, *_ = load_data(f"gap_FS{i}.dat")
+#     plt.plot(kx, ky, label=f"{i}")
 
-set_labels(r"$k_x$", r"$k_y$", r"FS")
-# plt.xlim(-0.3, 0.3)
-# plt.ylim(-0.3, 0.3)
-plt.gca().set_box_aspect(1)
-# plt.legend(title="contour idx")
-save_plot("FS.png")
+# set_labels(r"$k_x$", r"$k_y$", r"FS")
+# # plt.xlim(-0.3, 0.3)
+# # plt.ylim(-0.3, 0.3)
+# plt.gca().set_box_aspect(1)
+# # plt.legend(title="contour idx")
+# save_plot("FS.png")
 
-## Gap along FS contour
-kx_ky_gap_lst = []
-for i in range(n_contours):
-    kx,ky, *gaps = load_data(f"gap_FS{i}.dat")
-    kx_ky_gap_lst.append((kx, ky, gaps[0]))
-    theta=np.arctan2(ky[1:-1], kx[1:-1])
-    gap = gaps[0][1:-1]
-    plt.plot(theta, gap, label=f"{i}")
+# ## Gap along FS contour
+# kx_ky_gap_lst = []
+# for i in range(n_contours):
+#     kx,ky, *gaps = load_data(f"gap_FS{i}.dat")
+#     kx_ky_gap_lst.append((kx, ky, gaps[0]))
+#     theta=np.arctan2(ky[1:-1], kx[1:-1])
+#     gap = gaps[0][1:-1]
+#     plt.plot(theta, gap, label=f"{i}")
 
-# plt.yscale("log")
-plt.xlim(-np.pi, np.pi)
-plt.xticks(np.linspace(-np.pi, np.pi, 5), [r"$-\pi$", r"$-\pi/2$", r"$0$", r"$\pi/2$", r"$\pi$"])
-# plt.legend(title="contour idx")
-set_labels(r"$\theta$", r"$\Delta$", r"Gap along FS contours")
-save_plot("gap_FS.png")
+# # plt.yscale("log")
+# plt.xlim(-np.pi, np.pi)
+# plt.xticks(np.linspace(-np.pi, np.pi, 5), [r"$-\pi$", r"$-\pi/2$", r"$0$", r"$\pi/2$", r"$\pi$"])
+# # plt.legend(title="contour idx")
+# set_labels(r"$\theta$", r"$\Delta$", r"Gap along FS contours")
+# save_plot("gap_FS.png")
 
-# #for plotting gap along contour
-import matplotlib.cm as cm
-import matplotlib.colors as mcolors
+# # #for plotting gap along contour
+# import matplotlib.cm as cm
+# import matplotlib.colors as mcolors
 
-all_g = np.concatenate([g for _,_,g in kx_ky_gap_lst])
-norm = mcolors.Normalize(vmin=all_g.min(), vmax=all_g.max())
-cmap = cm.jet  # Colormap
+# all_g = np.concatenate([g for _,_,g in kx_ky_gap_lst])
+# norm = mcolors.Normalize(vmin=all_g.min(), vmax=all_g.max())
+# cmap = cm.jet  # Colormap
 
-for x,y,z in kx_ky_gap_lst:
-    colors = cmap(norm(z))  # Map z-values to colors
-    for i in range(len(x) - 1):
-        plt.plot(x[i:i+2], y[i:i+2], color=colors[i])
+# for x,y,z in kx_ky_gap_lst:
+#     colors = cmap(norm(z))  # Map z-values to colors
+#     for i in range(len(x) - 1):
+#         plt.plot(x[i:i+2], y[i:i+2], color=colors[i])
 
-sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-sm.set_array([])
-plt.colorbar(sm, ax=plt.gca())
+# sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+# sm.set_array([])
+# plt.colorbar(sm, ax=plt.gca())
     
-set_labels(r"$k_x$", r"$k_y$", r"Gap (meV)")
+# set_labels(r"$k_x$", r"$k_y$", r"Gap (meV)")
 
-
-kx, ky, *gaps = load_data("gap.dat")
-kxu, kyu = np.unique(kx), np.unique(ky)
-gap = gaps[0]
-
-idx=np.argmin(gap)
-print(kx[idx], ky[idx], gap[idx])
-plt.scatter(kx[idx], ky[idx], color="red", s=2)
-
-save_plot("gap_colored_FS.png")
+# save_plot("gap_colored_FS.png")
