@@ -27,7 +27,7 @@ add_executable(${PROJECT_NAME} main.cpp ${SOURCES})
 # Find Eigen
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIR})
-message(${EIGEN3_INCLUDE_DIR})
+# message(${EIGEN3_INCLUDE_DIR})
 
 # Find OpenMP
 find_package(OpenMP REQUIRED)
