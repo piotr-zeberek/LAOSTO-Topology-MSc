@@ -661,12 +661,15 @@ Eigen::VectorXd System2D::calcChernNumbersFromBC(const Eigen::Vector2<std::size_
     std::thread tl(processGridSection, kx_t, ky_l, std::ref(CN_tl));
     std::thread tr(processGridSection, kx_t, ky_r, std::ref(CN_tr));
     std::thread bl(processGridSection, kx_b, ky_l, std::ref(CN_bl));
-    std::thread br(processGridSection, kx_b, ky_r, std::ref(CN_br));
+    // std::thread br(processGridSection, kx_b, ky_r, std::ref(CN_br));
+
+    // bottom right using main thread
+    processGridSection(kx_b, ky_r, CN_br);
 
     tl.join();
     tr.join();
     bl.join();
-    br.join();
+    // br.join();
 
     return CN_tl + CN_tr + CN_bl + CN_br;
 }
