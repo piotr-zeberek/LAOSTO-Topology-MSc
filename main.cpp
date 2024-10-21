@@ -97,15 +97,17 @@ int main(int argc, char *argv[])
 
     // BS
     {
-        // System2D sys(HBdG, p);
+        System2D sys(HBdG, p);
 
-        // sys._p.mu = meV2au(-2.0);
-        // sys._p.Bz = T2au(2.0);
+        sys._p.mu = meV2au(4.0);
+        sys._p.Bx = T2au(5.0);
+        sys._p.By = T2au(0.0);
+        sys._p.Bz = T2au(0.0);
 
-        // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(10001, -0.5, 0.5);
+        Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(10001, -1.5, 1.5);
 
-        // sys.printBandStructureSlice("data/BS.dat", kx_vec, 0, 0.0); // slice
-        // // sys.printBandStructure("data/BS.dat", kx_vec, kx_vec); // 2D
+        sys.printBandStructureSlice("data/BS.dat", kx_vec, 0, 0.0); // slice
+        // sys.printBandStructure("data/BS.dat", kx_vec, kx_vec); // 2D
     }
 
     // gap closing with changes in mu
@@ -128,30 +130,34 @@ int main(int argc, char *argv[])
 
     // Chern numbers vs mu
     {
-        // System2D sys(HBdG, p);
+        System2D sys(HBdG, p);
 
-        // std::size_t n_dense = 4000; // number of k-points in each direction - even,
-        // std::size_t n_sparse = 1000; // number of k-points in each direction - even,
+        sys._p.Bx = T2au(5.0);
+        sys._p.By = T2au(0.0);
+        sys._p.Bz = T2au(0.0);
 
-        // std::ofstream mu_Cs_file("data/mu_Cs.dat");
+        std::size_t n_dense = 5000; // number of k-points in each direction - even,
+        std::size_t n_sparse = 1500; // number of k-points in each direction - even,
 
-        // double mu_max = meV2au(4.0);
-        // Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(9, -mu_max, mu_max);
+        std::ofstream mu_Cs_file("data/mu_Cs.dat");
 
-        // for (auto i = 0; i < mu_vec.size(); ++i)
-        // {
-        //     sys._p.mu = mu_vec(i);
-        //     mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
-        //     std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
-        // }
+        double mu_max = meV2au(4.0);
+        Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(51, -mu_max, mu_max);
+
+        for (auto i = 0; i < mu_vec.size(); ++i)
+        {
+            sys._p.mu = mu_vec(i);
+            mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
+            std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
+        }
     }
 
     // Chern numbers vs mu and B
     {
         // System2D sys(HBdG, p);
 
-        // std::size_t n_dense = 4000; // number of k-points in each direction - even,
-        // std::size_t n_sparse = 1000; // number of k-points in each direction - even,
+        // std::size_t n_dense = 500; // number of k-points in each direction - even, 5000
+        // std::size_t n_sparse = 500; // number of k-points in each direction - even, 1500
 
         // double mu_max = meV2au(4.0);
         // double Bz_max = T2au(5);
@@ -177,39 +183,39 @@ int main(int argc, char *argv[])
 
     // Chern numbers vs mu and B - command line arguments version
     {
-        System2D sys(HBdG, p);
+        // System2D sys(HBdG, p);
 
-        std::size_t n_dense = 5000;  // number of k-points in each direction - even,
-        std::size_t n_sparse = 1500; // number of k-points in each direction - even,
+        // std::size_t n_dense = 5000;  // number of k-points in each direction - even,
+        // std::size_t n_sparse = 1500; // number of k-points in each direction - even,
 
-        switch (argc)
-        {
-        case 2:
-            sys._p.mu = meV2au(std::stod(argv[1]));
-            break;
-        case 3:
-            sys._p.mu = meV2au(std::stod(argv[1]));
-            sys._p.Bz = T2au(std::stod(argv[2]));
-            break;
-        case 5:
-            sys._p.mu = meV2au(std::stod(argv[1]));
-            sys._p.Bx = T2au(std::stod(argv[2]));
-            sys._p.By = T2au(std::stod(argv[3]));
-            sys._p.Bz = T2au(std::stod(argv[4]));
-            break;
-        default:
-            std::cerr << "Usage: " << argv[0] << " mu (meV)" << std::endl;
-            std::cerr << "Usage: " << argv[0] << " mu (meV) Bz (T)" << std::endl;
-            std::cerr << "Usage: " << argv[0] << " mu (meV) Bx By Bz (T)" << std::endl;
-            return 1;
-        }
+        // switch (argc)
+        // {
+        // case 2:
+        //     sys._p.mu = meV2au(std::stod(argv[1]));
+        //     break;
+        // case 3:
+        //     sys._p.mu = meV2au(std::stod(argv[1]));
+        //     sys._p.Bz = T2au(std::stod(argv[2]));
+        //     break;
+        // case 5:
+        //     sys._p.mu = meV2au(std::stod(argv[1]));
+        //     sys._p.Bx = T2au(std::stod(argv[2]));
+        //     sys._p.By = T2au(std::stod(argv[3]));
+        //     sys._p.Bz = T2au(std::stod(argv[4]));
+        //     break;
+        // default:
+        //     std::cerr << "Usage: " << argv[0] << " mu (meV)" << std::endl;
+        //     std::cerr << "Usage: " << argv[0] << " mu (meV) Bz (T)" << std::endl;
+        //     std::cerr << "Usage: " << argv[0] << " mu (meV) Bx By Bz (T)" << std::endl;
+        //     return 1;
+        // }
 
-        std::cout << "mu = " << sys._p.mu / meV2au(1.0) << " meV" << std::endl;
-        std::cout << "Bx = " << sys._p.Bx / T2au(1.0) << " T" << std::endl;
-        std::cout << "By = " << sys._p.By / T2au(1.0) << " T" << std::endl;
-        std::cout << "Bz = " << sys._p.Bz / T2au(1.0) << " T" << std::endl;
+        // std::cout << "mu = " << sys._p.mu / meV2au(1.0) << " meV" << std::endl;
+        // std::cout << "Bx = " << sys._p.Bx / T2au(1.0) << " T" << std::endl;
+        // std::cout << "By = " << sys._p.By / T2au(1.0) << " T" << std::endl;
+        // std::cout << "Bz = " << sys._p.Bz / T2au(1.0) << " T" << std::endl;
 
-        std::cout << "Chern numbers: " << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
+        // std::cout << "Chern numbers: " << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
     }
 
     // BC
@@ -244,8 +250,12 @@ int main(int argc, char *argv[])
         // System2D sys(HBdG, p);
 
         // sys._p.mu = meV2au(0.0);
+        // sys._p.Bx = meV2au(5.0);
+        // sys._p.By = meV2au(0.0);
+        // sys._p.Bz = meV2au(0.0);
+
         // sys.setHamiltonian(Hk);
-        // auto FS = sys.findFSContours();
+        // auto FS = sys.findFSContours(0.0, 1e-6, 1e-12);
         // sys.setHamiltonian(HBdG);
 
         // for (auto ic = 0; ic < FS.size(); ++ic)
