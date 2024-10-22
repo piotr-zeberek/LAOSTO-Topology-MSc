@@ -77,15 +77,19 @@ public:
     void printBandStructure(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
     void printBandStructureSlice(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
     void printBerryCurvature(const std::string &output_filename, const H2D &dvxH, const H2D &dvyH, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-    void printGap(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-    void printGapAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour);
-
+    void printOrdinaryGap(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
+    void printOrdinaryGapAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour);
+    void printAbsDelta(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
+    void printAbsDeltaAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour);
+    void printDeltaFromUnitaryTransformation(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
+    
     std::vector<std::vector<Point2D>> findFSContours(double E = 0.0, double dk = 1e-4, double eps = 1e-9, const Point2D kx_range = {-M_PI, 0.0}, std::size_t n_kx = 1001);
 
     Eigen::VectorXd calcChernNumbers(const Eigen::Vector2<std::size_t> &n, double kmax = 2.0 * M_PI);
     Eigen::VectorXd calcChernNumbersDenserCenter(std::size_t n_dense, std::size_t n_sparse, double k_val);
     Eigen::VectorXd calcChernNumbersWithCustomGrid(const Eigen::VectorXd &kx, const Eigen::VectorXd &ky);
     Eigen::VectorXd calcChernNumbersFromBC(const Eigen::Vector2<std::size_t> &n, const H2D &dvxH, const H2D &dvyH);
+    Eigen::VectorXd calcAbsDelta(const Point2D &k);
 
     H2D _H;
     Parameters _p;

@@ -68,7 +68,7 @@ void System2D::printBandStructureSlice(const std::string &output_filename, const
     }
 }
 
-void System2D::printGap(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec)
+void System2D::printOrdinaryGap(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec)
 {
     std::ofstream output_file(output_filename);
 
@@ -82,7 +82,7 @@ void System2D::printGap(const std::string &output_filename, const Eigen::VectorX
     }
 }
 
-void System2D::printGapAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour)
+void System2D::printOrdinaryGapAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour)
 {
     std::ofstream output_file(output_filename);
 
@@ -91,6 +91,167 @@ void System2D::printGapAlongContour(const std::string &output_filename, const st
         _SAES.compute(_H(k, _p), Eigen::EigenvaluesOnly);
         output_file << k.x() << " " << k.y() << " " << (_SAES.eigenvalues().tail(_n_bands / 2) - _SAES.eigenvalues().head(_n_bands / 2).reverse()).transpose() / meV2au(1.0) << "\n";
     }
+}
+
+void System2D::printAbsDeltaAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto k : contour)
+    {
+        output_file << k.x() << " " << k.y() << " " << calcAbsDelta(k).transpose() / meV2au(1.0) << "\n";
+    }
+}
+
+void System2D::printDeltaFromUnitaryTransformation(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec)
+{
+    std::ofstream output_file(output_filename);
+
+    std::size_t half_bands = _n_bands / 2;
+
+    Eigen::MatrixXcd H(_n_bands, _n_bands);
+    Eigen::MatrixXcd U_tl(half_bands, half_bands);
+    Eigen::MatrixXcd U_br(half_bands, half_bands);
+    Eigen::MatrixXcd U = Eigen::MatrixXcd::Zero(_n_bands, _n_bands);
+
+    Eigen::VectorXd evals(half_bands);
+
+    // std::vector<std::size_t> indices(half_bands, 0);
+    // std::vector<std::size_t> inv_indices(half_bands, 0);
+
+    // for (auto kx : kx_vec)
+    // {
+    //     for (auto ky : ky_vec)
+    //     {
+    //         H = _H({kx, ky}, _p);
+
+    //         auto U_tl = _SAES.compute(H.topLeftCorner(half_bands, half_bands)).eigenvectors();
+    //         auto U_br = _SAES.compute(H.bottomRightCorner(half_bands, half_bands)).eigenvectors().rowwise().reverse();
+    //         evals = -_SAES.eigenvalues();
+
+    //         _SAES.compute(H, Eigen::EigenvaluesOnly);
+
+    //         // reset idx
+    //         for (auto i = 0; i < half_bands; ++i)
+    //         {
+    //             indices[i] = i;
+    //         }
+
+    //         std::sort(indices.begin(), indices.end(), [evals](std::size_t i1, std::size_t i2)
+    //                   { return std::abs(evals(i1)) <= std::abs(evals(i2)); });
+
+    //         for (auto i = 0; i < half_bands; ++i)
+    //         {
+    //             inv_indices[indices[i]] = i;
+    //         }
+
+    //         // for (auto i = 0; i < half_bands; ++i)
+    //         // {
+    //         //     std::size_t idx = 0;
+    //         //     U_tl.col(i).cwiseAbs2().maxCoeff(&idx);
+    //         //     U_tl.col(i) /= U_tl.col(i)(idx);
+    //         //     U_tl.col(i).normalize();
+
+    //         //     U_br.col(i).cwiseAbs2().maxCoeff(&idx);
+    //         //     U_br.col(i) /= U_br.col(i)(idx);
+    //         //     U_br.col(i).normalize();
+    //         // }
+
+    //         // std::cout << (U.adjoint() * sys._H({0, 0.0}, p) * U)/meV2au(1) << std::endl;
+
+    //         U.topLeftCorner(half_bands, half_bands) = U_tl;
+    //         U.bottomRightCorner(half_bands, half_bands) = U_br;
+
+    //         for (auto i = 0; i < half_bands; ++i)
+    //         {
+    //             abs2_deltas(i) = _SAES.eigenvalues()(half_bands + inv_indices[i]) * _SAES.eigenvalues()(half_bands + inv_indices[i]) - evals(i) * evals(i);
+    //         }
+
+    //         // abs2_deltas += _SAES.eigenvalues().tail(half_bands).cwiseAbs2();
+
+    //         output_file << kx << " " << ky << " " << abs2_deltas.transpose() / meV2au(1) / meV2au(1) << "\n";
+    //     }
+    // }
+
+    output_file << "# kx ky Re(d0_00) Im(d0_00) Re(d0_01) Im(d0_01) Re(d0_10) Im(d0_10) Re(d0_11) Im(d0_11) ... \n";
+
+    for (auto kx : kx_vec)
+    {
+        for (auto ky : ky_vec)
+        {
+            H = _H({kx, ky}, _p);
+
+            auto U_tl = _SAES.compute(H.topLeftCorner(half_bands, half_bands)).eigenvectors();
+            auto U_br = _SAES.compute(H.bottomRightCorner(half_bands, half_bands)).eigenvectors().rowwise().reverse();
+
+            for (auto i = 0; i < half_bands; ++i)
+            {
+                // std::size_t idx = 0;
+                // U_tl.col(i).cwiseAbs2().maxCoeff(&idx);
+                // U_tl.col(i) /= U_tl.col(i)(idx);
+                // U_tl.col(i).normalize();
+
+                // U_br.col(i).cwiseAbs2().maxCoeff(&idx);
+                // U_br.col(i) /= U_br.col(i)(idx);
+                // U_br.col(i).normalize();
+
+                U_tl.col(i) /= U_tl.col(i)(0);
+                U_tl.col(i).normalize();
+
+                U_br.col(i) /= U_br.col(i)(0);
+                U_br.col(i).normalize();
+            }
+
+            auto delta_matrix = U_tl.adjoint() * H.topRightCorner(half_bands, half_bands) * U_br;
+
+            output_file << kx << " " << ky << " ";
+
+            for (auto i = 0; i < half_bands; i = i + 2)
+            {
+                auto d = delta_matrix.block(i, i, 2, 2);
+
+                for (auto j = 0; j < 4; ++j)
+                {
+                    output_file << d(j / 2, j % 2).real() / meV2au(1) << " " << d(j / 2, j % 2).imag() / meV2au(1) << " ";
+                }
+            }
+            output_file << "\n";
+        }
+    }
+}
+
+void System2D::printAbsDelta(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto kx : kx_vec)
+    {
+        for (auto ky : ky_vec)
+        {
+            output_file << kx << " " << ky << " " << calcAbsDelta({kx, ky}).transpose() / meV2au(1) << "\n";
+        }
+    }
+}
+
+Eigen::VectorXd System2D::calcAbsDelta(const Point2D &k)
+{
+    std::size_t half_bands = _n_bands / 2;
+
+    Eigen::VectorXd abs_deltas(half_bands);
+
+    double mu_original = _p.mu;
+
+    auto evals = _SAES.compute(_H(k, _p).topLeftCorner(half_bands, half_bands), Eigen::EigenvaluesOnly).eigenvalues();
+
+    for (auto i = 0; i < half_bands; ++i)
+    {
+        _p.mu = mu_original + evals(i);
+        abs_deltas(i) = _SAES.compute(_H(k, _p), Eigen::EigenvaluesOnly).eigenvalues()(half_bands);
+    }
+
+    _p.mu = mu_original;
+
+    return abs_deltas;
 }
 
 std::vector<std::vector<Point2D>> System2D::findFSContours(double E, double dk, double eps, const Point2D kx_range, std::size_t n_kx)

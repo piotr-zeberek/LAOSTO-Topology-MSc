@@ -19,11 +19,11 @@ int main(int argc, char *argv[])
     p.delta_SO = meV2au(10.0);
     p.delta_RSO = meV2au(20.0);
     p.delta_SC = meV2au(0.2);
-    p.mu = meV2au(0.0);
+    p.mu = meV2au(2.0);
     p.g_Lande = 3;
     p.Bx = T2au(0.0);
     p.By = T2au(0.0);
-    p.Bz = T2au(5.0);
+    p.Bz = T2au(0.0);
 
     auto Hk = [](const Point2D &k, const Parameters &p) -> Eigen::MatrixXcd
     {
@@ -69,14 +69,13 @@ int main(int argc, char *argv[])
 
     auto HBdG = [Hk](const Eigen::Vector2d &k, const Parameters &p) -> Eigen::MatrixXcd
     {
-        Eigen::MatrixXcd upper_left = Hk(k, p);
-        Eigen::MatrixXcd lower_right = -Hk(-k, p).transpose();
-
         // account for the superconducting gap
         Eigen::MatrixXcd res = -p.delta_SC * Eigen::kroneckerProduct(sy, Eigen::kroneckerProduct(Eigen::Matrix3cd::Identity(), sy));
 
-        res.topLeftCorner(upper_left.rows(), upper_left.cols()) = upper_left;
-        res.bottomRightCorner(lower_right.rows(), lower_right.cols()) = lower_right;
+        std::size_t Hk_dim = res.rows() / 2;
+
+        res.topLeftCorner(Hk_dim, Hk_dim) = Hk(k, p);
+        res.bottomRightCorner(Hk_dim, Hk_dim) = -Hk(-k, p).transpose();
 
         return res;
     };
@@ -95,19 +94,76 @@ int main(int argc, char *argv[])
     auto dvyHBdG_num2 = [HBdG, dk](const Point2D &k, const Parameters &p) -> Eigen::MatrixXcd
     { return (-HBdG(k + Point2D{0.0, 2.0 * dk}, p) + 8.0 * HBdG(k + Point2D{0.0, dk}, p) - 8.0 * HBdG(k - Point2D{0.0, dk}, p) + HBdG(k - Point2D{0.0, 2.0 * dk}, p)) / (12.0 * dk); };
 
-    // BS
+    // complex delta testing
+    {
+        // System2D sys(HBdG, p);
+
+        // sys._p.mu = meV2au(-3.0);
+        // sys._p.Bx = T2au(0.0);
+        // sys._p.By = T2au(0.0);
+        // sys._p.Bz = T2au(5.0);
+
+        // std::size_t n_k = 501;
+        // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -0.3, 0.3);
+        // Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -0.3, 0.3);
+
+        // sys.printAbsDelta("data/gap.dat", kx_vec, ky_vec);
+    }
+
+    // delta matrix for pairs
     {
         System2D sys(HBdG, p);
 
-        sys._p.mu = meV2au(4.0);
-        sys._p.Bx = T2au(5.0);
+        sys._p.mu = meV2au(-3.0);
+        sys._p.Bx = T2au(0.0);
         sys._p.By = T2au(0.0);
-        sys._p.Bz = T2au(0.0);
+        sys._p.Bz = T2au(5.0);
 
-        Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(10001, -1.5, 1.5);
+        std::size_t n_k = 501;
+        Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -0.5, 0.5);
+        Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -0.5, 0.5);
 
-        sys.printBandStructureSlice("data/BS.dat", kx_vec, 0, 0.0); // slice
-        // sys.printBandStructure("data/BS.dat", kx_vec, kx_vec); // 2D
+        sys.printDeltaFromUnitaryTransformation("data/delta.dat", kx_vec, ky_vec);
+    }
+
+    // abs delta vs Bz for given k
+    {
+        // System2D sys(HBdG, p);
+
+        // sys._p.mu = meV2au(0.0); // doesnt matter
+        // sys._p.Bx = T2au(0.0);
+        // sys._p.By = T2au(0.0);
+        // sys._p.Bz = T2au(0.0);
+
+        // double Bz_max = T2au(5);
+        // Eigen::VectorXd Bz_vec = Eigen::VectorXd::LinSpaced(10001, -Bz_max, Bz_max);
+
+        // Point2D k{0.0, 0.0};
+
+        // std::ofstream output_file("data/abs_delta_Bz.dat");
+
+        // output_file << "# k = " << k.transpose() << std::endl;
+
+        // for (auto Bz : Bz_vec)
+        // {
+        //     sys._p.Bz = Bz;
+        //     output_file << Bz / T2au(1.0) << " " << sys.calcAbsDelta(k).transpose() / meV2au(1) << std::endl;
+        // }
+    }
+
+    // BS
+    {
+        // System2D sys(HBdG, p);
+
+        // sys._p.mu = meV2au(4.0);
+        // sys._p.Bx = T2au(5.0);
+        // sys._p.By = T2au(0.0);
+        // sys._p.Bz = T2au(0.0);
+
+        // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(10001, -1.5, 1.5);
+
+        // sys.printBandStructureSlice("data/BS.dat", kx_vec, 0, 0.0); // slice
+        // // sys.printBandStructure("data/BS.dat", kx_vec, kx_vec); // 2D
     }
 
     // gap closing with changes in mu
@@ -130,26 +186,26 @@ int main(int argc, char *argv[])
 
     // Chern numbers vs mu
     {
-        System2D sys(HBdG, p);
+        // System2D sys(HBdG, p);
 
-        sys._p.Bx = T2au(5.0);
-        sys._p.By = T2au(0.0);
-        sys._p.Bz = T2au(0.0);
+        // sys._p.Bx = T2au(0.0);
+        // sys._p.By = T2au(0.0);
+        // sys._p.Bz = T2au(5.0);
 
-        std::size_t n_dense = 5000; // number of k-points in each direction - even,
-        std::size_t n_sparse = 1500; // number of k-points in each direction - even,
+        // std::size_t n_dense = 5000;  // number of k-points in each direction - even,
+        // std::size_t n_sparse = 1500; // number of k-points in each direction - even,
 
-        std::ofstream mu_Cs_file("data/mu_Cs.dat");
+        // std::ofstream mu_Cs_file("data/mu_Cs.dat");
 
-        double mu_max = meV2au(4.0);
-        Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(51, -mu_max, mu_max);
+        // double mu_max = meV2au(4.0);
+        // Eigen::VectorXd mu_vec = Eigen::VectorXd::LinSpaced(51, -mu_max, mu_max);
 
-        for (auto i = 0; i < mu_vec.size(); ++i)
-        {
-            sys._p.mu = mu_vec(i);
-            mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
-            std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
-        }
+        // for (auto i = 0; i < mu_vec.size(); ++i)
+        // {
+        //     sys._p.mu = mu_vec(i);
+        //     mu_Cs_file << mu_vec(i) / meV2au(1.0) << "\t" << sys.calcChernNumbersDenserCenter(n_dense, n_sparse, 0.5).transpose() << std::endl;
+        //     std::cout << i + 1 << " out of " << mu_vec.size() << std::endl;
+        // }
     }
 
     // Chern numbers vs mu and B
@@ -242,25 +298,26 @@ int main(int argc, char *argv[])
 
         // sys._p.mu = meV2au(0.0);
 
-        // sys.printGap("data/gap.dat", kx_vec, kx_vec);
+        // sys.printOrdinaryGap("data/gap.dat", kx_vec, kx_vec);
     }
 
     // FS contours and gap along them
     {
         // System2D sys(HBdG, p);
 
-        // sys._p.mu = meV2au(0.0);
-        // sys._p.Bx = meV2au(5.0);
+        // sys._p.mu = meV2au(-3.0);
+        // sys._p.Bx = meV2au(0.0);
         // sys._p.By = meV2au(0.0);
-        // sys._p.Bz = meV2au(0.0);
+        // sys._p.Bz = meV2au(5.0);
 
         // sys.setHamiltonian(Hk);
-        // auto FS = sys.findFSContours(0.0, 1e-6, 1e-12);
+        // auto FS = sys.findFSContours();
         // sys.setHamiltonian(HBdG);
 
         // for (auto ic = 0; ic < FS.size(); ++ic)
         // {
-        //     sys.printGapAlongContour("data/gap_FS" + std::to_string(ic) + ".dat", FS[ic]);
+        //     // sys.printOrdinaryGapAlongContour("data/gap_FS" + std::to_string(ic) + ".dat", FS[ic]);
+        //     sys.printAbsDeltaAlongContour("data/gap_FS" + std::to_string(ic) + ".dat", FS[ic]);
         // }
     }
 
@@ -334,6 +391,80 @@ int main2()
 
     auto dvyHBdG_num2 = [HBdG, dk](const Point2D &k, const Parameters &p) -> Eigen::MatrixXcd
     { return (-HBdG(k + Point2D{0.0, 2.0 * dk}, p) + 8.0 * HBdG(k + Point2D{0.0, dk}, p) - 8.0 * HBdG(k - Point2D{0.0, dk}, p) + HBdG(k - Point2D{0.0, 2.0 * dk}, p)) / (12.0 * dk); };
+
+    // complex delta testing
+    {
+        // System2D sys(HBdG, p);
+
+        // sys._p.mu = meV2au(0.0 - 13.5608);
+        // sys._p.Bx = T2au(0.0);
+        // sys._p.By = T2au(0.0);
+        // sys._p.Bz = T2au(0.1);
+
+        // std::size_t n_k = 501;
+        // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -1.2, 1.2);
+        // Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -1.2, 1.2);
+
+        // sys.printGapFromUnitaryTransformation("data/gap.dat", kx_vec, ky_vec);
+
+        // Point2D k{0.0, 0.5};
+        // Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> SAES;
+        // auto U_tl = SAES.compute(sys._H(k, sys._p).topLeftCorner(2, 2)).eigenvectors();
+        // auto U_br = SAES.compute(sys._H(k, sys._p).bottomRightCorner(2, 2)).eigenvectors().rowwise().reverse();
+
+        // Eigen::MatrixXcd U = Eigen::MatrixXcd::Zero(4, 4);
+        // U.topLeftCorner(2, 2) = U_tl;
+        // U.bottomRightCorner(2, 2) = U_br;
+
+        // std::cout << (U.adjoint() * sys._H(k, sys._p) * U) / meV2au(1) << std::endl;
+
+        // SAES.compute(sys._H(k, sys._p));
+
+        // std::cout << std::endl;
+        // std::cout << (SAES.eigenvectors().adjoint() * sys._H(k, sys._p) * SAES.eigenvectors()) / meV2au(1) << std::endl;
+    }
+
+    // delta matrix for pairs
+    {
+        System2D sys(HBdG, p);
+
+        sys._p.mu = meV2au(1.0);
+        sys._p.Bx = T2au(0.0);
+        sys._p.By = T2au(0.0);
+        sys._p.Bz = T2au(0.4);
+
+        std::size_t n_k = 501;
+        Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -0.05, 0.05);
+        Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -0.05, 0.05);
+
+        sys.printDeltaFromUnitaryTransformation("data/delta.dat", kx_vec, ky_vec);
+        sys.printAbsDelta("data/abs_delta.dat", kx_vec, ky_vec);
+    }
+
+    // abs delta vs Bz for given k
+    {
+        // System2D sys(HBdG, p);
+
+        // sys._p.mu = meV2au(0.0); // doesnt matter
+        // sys._p.Bx = T2au(0.0);
+        // sys._p.By = T2au(0.0);
+        // sys._p.Bz = T2au(0.0);
+
+        // double Bz_max = T2au(2);
+        // Eigen::VectorXd Bz_vec = Eigen::VectorXd::LinSpaced(10001, -Bz_max, Bz_max);
+
+        // Point2D k{0.0, 0.0};
+
+        // std::ofstream output_file("data/abs_delta_Bz.dat");
+
+        // output_file << "# k = " << k.transpose() << std::endl;
+
+        // for (auto Bz : Bz_vec)
+        // {
+        //     sys._p.Bz = Bz;
+        //     output_file << Bz / T2au(1.0) << " " << sys.calcAbsDelta(k).transpose() / meV2au(1) << std::endl;
+        // }
+    }
 
     // BS
     {
@@ -440,7 +571,7 @@ int main2()
 
         // sys._p.mu = meV2au(0.0);
 
-        // sys.printGap("data/gap.dat", kx_vec, kx_vec);
+        // sys.printOrdinaryGap("data/gap.dat", kx_vec, kx_vec);
     }
 
     // FS contours and gap along them
@@ -454,7 +585,7 @@ int main2()
 
         // for (auto ic = 0; ic < FS.size(); ++ic)
         // {
-        //     sys.printGapAlongContour("data/gap_FS" + std::to_string(ic) + ".dat", FS[ic]);
+        //     sys.printOrdinaryGapAlongContour("data/gap_FS" + std::to_string(ic) + ".dat", FS[ic]);
         // }
     }
 
