@@ -1,1 +1,1 @@
-# MSc
+# MSc project
