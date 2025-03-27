@@ -3,29 +3,31 @@
 
 #include <functional>
 #include <string>
-#include <tuple>
 
 #include <Eigen/Core>
 #include <Eigen/Eigen>
+#include <Eigen/SparseCore>
 
-struct Parameters
+#include "utils.h"
+
+using Hamiltonian = Eigen::MatrixXcd;
+using SparseHamiltonian = Eigen::SparseMatrix<std::complex<double>>;
+
+struct System2D
 {
-    // Hopping parameters: l - light, h - heavy, d - coupling between the dxz /dyz
-    double tl{};
-    double th{};
-    double td{};
+    std::size_t n_bands = 2;
+    std::size_t n_bands_sc = 4;
 
-    // Energy difference between xy and xz/yz orbitals
-    double delta_E{};
+    // effective mass
+    double m = 1.0;
 
-    // Atomic spin-orbit coupling
-    double delta_SO{};
+    // lattice constants
+    double dx = 1.0;
+    double dy = 1.0;
 
-    // Rashba spin-orbit coupling
-    double delta_RSO{};
-
-    // Superconducting energy gap
-    double delta_SC{};
+    // Hopping amplitudes
+    double tx = 1.0;
+    double ty = 1.0;
 
     // Chemical potential
     double mu{};
@@ -38,82 +40,32 @@ struct Parameters
     double By{};
     double Bz{};
 
-    // effective mass
-    double m{};
+    // Superconducting energy gap
+    double delta_SC{};
 
-    // Rashba coupling
-    double delta_SO_x{};
-    double delta_SO_y{};
+    virtual void set_default() = 0;
 
-    // Hopping amplitudes
-    double tx{};
-    double ty{};
+    // continues hamiltonians
+    virtual Hamiltonian Hk(double kx, double ky) const = 0;
+    virtual Hamiltonian HBdG(double kx, double ky) const = 0;
 
-    // lattice constants
-    double dx{};
-    double dy{};
-};
+    // continues in kx, discretized in ky hamiltonians
+    virtual Hamiltonian HBdG_discrete_ky_onsite(double kx, double y) const = 0;
+    virtual Hamiltonian HBdG_discrete_ky_hopping_p(double kx, double y) const = 0;
+    virtual Hamiltonian HBdG_discrete_ky_hopping_m(double kx, double y) const = 0;
 
-using H2D = std::function<Eigen::MatrixXcd(const Eigen::Vector2d &k, const Parameters &p)>;
-using Point2D = Eigen::Vector2d;
+    virtual Hamiltonian HBdG_discrete_ky(double kx, std::size_t n_ky) const;
+    virtual std::vector<Triplet> HBdG_discrete_ky_triplets(double kx, std::size_t n_ky) const;
 
-class System2D
-{
-public:
-    System2D() = delete;
-    System2D(const H2D &H, const Parameters &p = Parameters());
+    // discretized in kx, discretized in ky hamiltonians
+    virtual Hamiltonian HBdG_discrete_onsite(double x, double y) const = 0;
+    virtual Hamiltonian HBdG_discrete_hopping_xp(double x, double y) const = 0;
+    virtual Hamiltonian HBdG_discrete_hopping_xm(double x, double y) const = 0;
+    virtual Hamiltonian HBdG_discrete_hopping_yp(double x, double y) const = 0;
+    virtual Hamiltonian HBdG_discrete_hopping_ym(double x, double y) const = 0;
 
-    void setHamiltonian(const H2D &H)
-    {
-        _H = H;
-        _n_bands = _H({0, 0}, _p).rows();
-    }
-
-    void setParameters(const Parameters &p) { _p = p; }
-
-    Parameters &params() { return _p; }
-
-    Eigen::VectorXd eigenvals(const Point2D &k);
-    Eigen::MatrixXcd eigenvecs(const Point2D &k);
-    std::tuple<Eigen::VectorXd, Eigen::MatrixXcd> eigen(const Point2D &k);
-
-    void printBandStructure(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-    void printBandStructureSlice(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
-    void printBandStructureDiscreteky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, bool use_arma = false);
-    void printProbDenDiscrete(const std::string &output_filename, std::size_t nk_x, std::size_t nk_y, double E);
-    
-    void printBerryCurvature(const std::string &output_filename, const H2D &dvxH, const H2D &dvyH, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-    
-    void printOrdinaryGap(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-    void printOrdinaryGapAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour);
-    void printAbsDelta(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-    void printAbsDeltaAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour);
-    void printDeltaFromUnitaryTransformation(const std::string &delta_filename, const std::string &DT_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-
-    std::vector<std::vector<Point2D>> findFSContours(double E = 0.0, double dk = 1e-4, double eps = 1e-9, const Point2D kx_range = {-M_PI, 0.0}, std::size_t n_kx = 1001);
-
-    Eigen::VectorXd calcChernNumbers(const Eigen::Vector2<std::size_t> &n, double kmax = 2.0 * M_PI);
-    Eigen::VectorXd calcChernNumbersDenserCenter(std::size_t n_dense, std::size_t n_sparse, double k_val);
-    Eigen::VectorXd calcChernNumbersWithCustomGrid(const Eigen::VectorXd &kx, const Eigen::VectorXd &ky);
-    Eigen::VectorXd calcChernNumbersFromBC(const Eigen::Vector2<std::size_t> &n, const H2D &dvxH, const H2D &dvyH);
-    double calcCNDiscreteky(std::size_t n_dense, std::size_t n_sparse, double k_val, std::size_t n_ky);
-    double calcCNUsingWilsonLoop(std::size_t n_dense, std::size_t n_sparse, double k_val);
-    Eigen::VectorXd calcAbsDelta(const Point2D &k);
-
-    Eigen::MatrixXcd H_discrete_ky(double kx, std::size_t n_ky);
-    //arma::sp_cx_mat armaH_discrete_ky(double kx, std::size_t n_ky);
-    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> H_discrete_ky_eigendecomposiiton(double kx, std::size_t n_ky, bool eigenvalues_olny = true, std::size_t n_eigs = 30, double sigma = 0.0);
-
-    Eigen::MatrixXcd H_discrete(std::size_t n_kx, std::size_t n_ky);
-    //arma::sp_cx_mat armaH_discrete(std::size_t n_kx, std::size_t n_ky);
-    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> H_discrete_eigendecomposiiton(std::size_t n_kx, std::size_t n_ky, bool eigenvalues_olny = true, std::size_t n_eigs = 30, double sigma = 0.0);
-
-    H2D _H;
-    Parameters _p;
-    std::size_t _n_bands;
-
-private:
-    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> _SAES;
+    virtual Hamiltonian HBdG_discrete(std::size_t n_kx, std::size_t n_ky) const;
+    virtual std::vector<Triplet> HBdG_discrete_triplets(std::size_t n_kx, std::size_t n_ky) const;
 };
 
 #endif

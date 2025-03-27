@@ -22,30 +22,32 @@ file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(${PROJECT_NAME} main.cpp ${SOURCES})
 
-# include Eigen
+# Import Eigen targets.
 find_package(Eigen3 REQUIRED)
-include_directories(${EIGEN3_INCLUDE_DIR})
-
-# Link OpenMP
-find_package(OpenMP REQUIRED)
-target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 # Link Armadillo
 find_package(Armadillo REQUIRED)
 include_directories(${ARMADILLO_INCLUDE_DIRS})
 target_link_libraries(${PROJECT_NAME} PUBLIC ${ARMADILLO_LIBRARIES})
 
-# Find the ARPACK library
-find_library(ARPACK_LIB NAMES arpack PATHS /usr/lib /usr/local/lib)
-
-# Add the ARPACK library to the target link libraries
-target_link_libraries(${PROJECT_NAME} PUBLIC ${ARPACK_LIB})
+# Find ARPACK-NG
+find_package(ARPACKNG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC ARPACK::ARPACK)
 
 # Find the SuperLU library
 find_library(SUPERLU_LIB NAMES superlu PATHS /usr/lib /usr/local/lib)
-
-# Add the SuperLU library to the target link libraries
 target_link_libraries(${PROJECT_NAME} PUBLIC ${SUPERLU_LIB})
+
+# Find the LAPACK library
+find_library(LAPACK_LIB NAMES lapack PATHS /usr/lib /usr/local/lib)
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LAPACK_LIB})
+
+# Find OpenMP
+find_package(OpenMP REQUIRED)
+target_link_libraries(${PROJECT_NAME} PUBLIC OpenMP::OpenMP_CXX)
+
+target_compile_definitions(${PROJECT_NAME} PUBLIC ARMA_USE_ARPACK=1 ARMA_USE_SUPERLU=1 ARMA_USE_LAPACK=1 ARMA_USE_OPENMP=1)
 
 # speed up
 target_compile_options(${PROJECT_NAME} PUBLIC -march=native)
