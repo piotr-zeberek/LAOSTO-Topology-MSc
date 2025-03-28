@@ -2,8 +2,12 @@
 #include <iomanip>
 #include <fstream>
 
-#include "ToyModel.h"
-#include "LAOSTO.h"
+#include "ToyModelElementBased.h"
+#include "ToyModelMatrixBased.h"
+
+#include "LAOSTOMatrixBased.h"
+
+#include "System2DCalculations.h"   
 #include "System2DCalculationsPrinter.h"
 
 // // LAO/STO 001
@@ -359,22 +363,23 @@
 // check model
 int main()
 {
-    // ToyModel sys;
-    // System2DCalculations calc(sys);
-    // System2DCalculationsPrinter printer(calc);
-
-    // sys.Bz = T2au(0.3);
-    // sys.mu = meV2au(4.0);
-
-    LAOSTO sys;
+    ToyModelMatrixBased sys;
     System2DCalculations calc(sys);
     System2DCalculationsPrinter printer(calc);
+
+    ToyModelElementBased sys2;
+    System2DCalculations calc2(sys2);
+    System2DCalculationsPrinter printer2(calc2);
+
+    // LAOSTO sys;
+    // System2DCalculations calc(sys);
+    // System2DCalculationsPrinter printer(calc);
 
     // sys.mu = meV2au(20.0);
 
     // printer.printBandStructureSlice("data/BS.dat", Eigen::VectorXd::LinSpaced(1001, -0.5, 0.5), 0, 0.0);
     // printer.printBandStructure_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(201, -0.3, 0.3), 15);
-    printer.printBandStructure_sparse_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(201, -0.3, 0.3), 35, 50);
+    // printer.printBandStructure_sparse_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(201, -0.3, 0.3), 500, 80);
 
 
     // printer.printAbsDelta("data/abs_delta.dat", Eigen::VectorXd::LinSpaced(101, -0.5, 0.5), Eigen::VectorXd::LinSpaced(101, -0.5, 0.5));

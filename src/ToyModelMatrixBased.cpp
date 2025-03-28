@@ -1,13 +1,13 @@
-#include "ToyModel.h"
+#include "ToyModelMatrixBased.h"
 
 #include <unsupported/Eigen/KroneckerProduct>
 
-Hamiltonian ToyModel::Hk(double kx, double ky) const
+Hamiltonian ToyModelMatrixBased::Hk(double kx, double ky) const
 {
     return Hkin(kx, ky) + HZeeman(kx, ky) + HRashba(kx, ky) - mu * s0;
 }
 
-Hamiltonian ToyModel::HBdG(double kx, double ky) const
+Hamiltonian ToyModelMatrixBased::HBdG(double kx, double ky) const
 {
     Hamiltonian res = -delta_SC * Eigen::kroneckerProduct(sy, sy);
 
@@ -17,7 +17,7 @@ Hamiltonian ToyModel::HBdG(double kx, double ky) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_ky_onsite(double kx, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_ky_onsite(double kx, double y) const
 {
     Hamiltonian res = -delta_SC * Eigen::kroneckerProduct(sy, sy);
 
@@ -27,7 +27,7 @@ Hamiltonian ToyModel::HBdG_discrete_ky_onsite(double kx, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_ky_hopping_p(double kx, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_ky_hopping_p(double kx, double y) const
 {
     Hamiltonian res = Hamiltonian::Zero(4, 4);
 
@@ -37,7 +37,7 @@ Hamiltonian ToyModel::HBdG_discrete_ky_hopping_p(double kx, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_ky_hopping_m(double kx, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_ky_hopping_m(double kx, double y) const
 {
     Hamiltonian res = Hamiltonian::Zero(4, 4);
 
@@ -47,7 +47,7 @@ Hamiltonian ToyModel::HBdG_discrete_ky_hopping_m(double kx, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_onsite(double x, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_onsite(double x, double y) const
 {
     Hamiltonian res = -delta_SC * Eigen::kroneckerProduct(sy, sy);
 
@@ -59,7 +59,7 @@ Hamiltonian ToyModel::HBdG_discrete_onsite(double x, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_hopping_xp(double x, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_hopping_xp(double x, double y) const
 {
     Hamiltonian res = Hamiltonian::Zero(4, 4);
 
@@ -69,7 +69,7 @@ Hamiltonian ToyModel::HBdG_discrete_hopping_xp(double x, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_hopping_xm(double x, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_hopping_xm(double x, double y) const
 {
     Hamiltonian res = Hamiltonian::Zero(4, 4);
 
@@ -79,7 +79,7 @@ Hamiltonian ToyModel::HBdG_discrete_hopping_xm(double x, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_hopping_yp(double x, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_hopping_yp(double x, double y) const
 {
     Hamiltonian res = Hamiltonian::Zero(4, 4);
 
@@ -89,7 +89,7 @@ Hamiltonian ToyModel::HBdG_discrete_hopping_yp(double x, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::HBdG_discrete_hopping_ym(double x, double y) const
+Hamiltonian ToyModelMatrixBased::HBdG_discrete_hopping_ym(double x, double y) const
 {
     Hamiltonian res = Hamiltonian::Zero(4, 4);
 
@@ -99,15 +99,15 @@ Hamiltonian ToyModel::HBdG_discrete_hopping_ym(double x, double y) const
     return res;
 }
 
-Hamiltonian ToyModel::Hkin(double kx, double ky) const
+Hamiltonian ToyModelMatrixBased::Hkin(double kx, double ky) const
 {
     return 2.0 * (tx * (1.0 - std::cos(kx)) + ty * (1.0 - std::cos(ky))) * s0;
 }
-Hamiltonian ToyModel::HZeeman(double kx, double ky) const
+Hamiltonian ToyModelMatrixBased::HZeeman(double kx, double ky) const
 {
     return 0.5 * g_Lande * 0.5 * (Bx * sx + By * sy + Bz * sz);
 }
-Hamiltonian ToyModel::HRashba(double kx, double ky) const
+Hamiltonian ToyModelMatrixBased::HRashba(double kx, double ky) const
 {
     return delta_RSO_y * std::sin(ky) * sx - delta_RSO_x * std::sin(kx) * sy;
 }

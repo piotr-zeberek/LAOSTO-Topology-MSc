@@ -70,7 +70,7 @@ void System2DCalculationsPrinter::printProbDen_sparse_discrete(const std::string
     {
         for (auto j = 0; j < nk_y; ++j)
         {
-            output_file << i << " " << j << " " << prob_den_orbitals.segment((i * nk_y + j) * _calc.system().n_bands_sc, _calc.system().n_bands_sc).sum() << std::endl;
+            output_file << i << " " << j << " " << prob_den_orbitals.segment((i * nk_y + j) * 2*_calc.system().n_bands, 2*_calc.system().n_bands).sum() << std::endl;
         }
     }
 }

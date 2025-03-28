@@ -1,10 +1,10 @@
-#ifndef TOYMODEL_H
-#define TOYMODEL_H
+#ifndef TOYMODELMATRIXBASED_H
+#define TOYMODELMATRIXBASED_H
 
-#include "System2D.h"
+#include "System2DMatrixBased.h"
 #include "utils.h"
 
-struct ToyModel : public System2D
+struct ToyModelMatrixBased : public System2DMatrixBased
 {
     // effective mass
     double m = 1.0;
@@ -17,15 +17,14 @@ struct ToyModel : public System2D
     double delta_RSO_x{};
     double delta_RSO_y{};
 
-    ToyModel()
+    ToyModelMatrixBased()
     {
-        set_default();
+        set_default_parameters();
     }
 
-    void set_default() override
+    void set_default_parameters() override
     {
         n_bands = 2;
-        n_bands_sc = 2 * n_bands;
 
         double dx_nm = 8.0;
         double dy_nm = 8.0;

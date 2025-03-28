@@ -1,5 +1,37 @@
 #include "utils.h"
 
+void adjoint_triplets(std::vector<Triplet> &triplets)
+{
+    for (auto &t : triplets)
+    {
+        t = {t.col(), t.row(), std::conj(t.value())};
+    }
+}
+
+void transpose_triplets(std::vector<Triplet> &triplets)
+{
+    for (auto &t : triplets)
+    {
+        t = {t.col(), t.row(), t.value()};
+    }
+}
+
+void negate_triplets(std::vector<Triplet> &triplets)
+{
+    for (auto &t : triplets)
+    {
+        t = {t.row(), t.col(), -t.value()};
+    }
+}
+
+void negate_transpose_triplets(std::vector<Triplet> &triplets)
+{
+    for (auto &t : triplets)
+    {
+        t = {t.col(), t.row(), -t.value()};
+    }
+}
+
 Eigen::MatrixXcd kron(const Eigen::MatrixXcd &A, const Eigen::MatrixXcd &B)
 {
     Eigen::MatrixXcd res(A.rows() * B.rows(), A.cols() * B.cols());
@@ -15,27 +47,11 @@ Eigen::MatrixXcd kron(const Eigen::MatrixXcd &A, const Eigen::MatrixXcd &B)
     return res;
 }
 
-std::vector<Triplet> get_triplets(const Eigen::MatrixXcd &mat, double tol)
-{
-    std::vector<Triplet> triplets;
-
-    for (auto i = 0; i < mat.rows(); ++i)
-    {
-        for (auto j = 0; j < mat.cols(); ++j)
-        {
-            if (std::abs(mat(i, j)) > tol)
-            triplets.push_back(Triplet(i, j, mat(i, j)));
-        }
-    }
-
-    return triplets;
-}
-
-void add_triplets(std::vector<Triplet> &triplets, std::vector<Triplet> &triplets_to_add, int row_offset, int col_offset)
+void add_triplets(std::vector<Triplet> &triplets, const std::vector<Triplet> &triplets_to_add, int row_offset, int col_offset)
 {
     for (auto &t : triplets_to_add)
     {
-        triplets.push_back(Triplet(t.row() + row_offset, t.col() + col_offset, t.value()));
+        triplets.emplace_back(t.row() + row_offset, t.col() + col_offset, t.value());
     }
 }
 

@@ -1,12 +1,12 @@
-#ifndef LAOSTO_H
-#define LAOSTO_H
+#ifndef LAOSTOMATRIXBASED_H
+#define LAOSTOMATRIXBASED_H
 
-#include "System2D.h"
+#include "System2DMatrixBased.h"
 #include "utils.h"
 
 #include <unsupported/Eigen/KroneckerProduct>
 
-struct LAOSTO : public System2D
+struct LAOSTOMatrixBased : public System2DMatrixBased
 {
     // Hopping parameters: l - light, h - heavy, d - coupling between the dxz /dyz
     double tl{};
@@ -44,9 +44,9 @@ struct LAOSTO : public System2D
     // Atomic SO matrix
     Hamiltonian HSO_mat;
 
-    LAOSTO()
+    LAOSTOMatrixBased()
     {
-        set_default();
+        set_default_parameters();
 
         // Atomic SO matrix
         Hamiltonian H(n_bands, n_bands);
@@ -58,10 +58,9 @@ struct LAOSTO : public System2D
         HSO_mat = H;
     }
 
-    void set_default() override
+    void set_default_parameters() override
     {
         n_bands = 6;
-        n_bands_sc = 2 * n_bands;
 
         double dx_nm = 0.39;
         double dy_nm = 0.39;

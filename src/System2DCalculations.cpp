@@ -61,14 +61,14 @@ Eigen::VectorXd System2DCalculations::eigenvals_discrete(std::size_t n_kx, std::
 
 Eigen::VectorXd System2DCalculations::eigenvals_sprase_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.HBdG_discrete_ky_triplets(kx, n_ky);
-    return arma_eigenvals_sparse(triplets, _sys.n_bands_sc * n_ky, _sys.n_bands_sc * n_ky, n_eigs, sigma);
+    Triplets triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
+    return arma_eigenvals_sparse(triplets, 2 * _sys.n_bands * n_ky, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
 };
 
 Eigen::VectorXd System2DCalculations::eigenvals_sprase_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.HBdG_discrete_triplets(n_kx, n_ky);
-    return arma_eigenvals_sparse(triplets, _sys.n_bands_sc * n_kx * n_ky, _sys.n_bands_sc * n_kx * n_ky, n_eigs, sigma);
+    Triplets triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
+    return arma_eigenvals_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
 };
 
 Eigen::MatrixXcd System2DCalculations::eigenvecs(double kx, double ky)
@@ -117,14 +117,14 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_discret
 
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sprase_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.HBdG_discrete_ky_triplets(kx, n_ky);
-    return arma_eigen_sparse(triplets, _sys.n_bands_sc * n_ky, _sys.n_bands_sc * n_ky, n_eigs, sigma);
+    Triplets triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
+    return arma_eigen_sparse(triplets, 2 * _sys.n_bands * n_ky, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
 }
 
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sprase_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.HBdG_discrete_triplets(n_kx, n_ky);
-    return arma_eigen_sparse(triplets, _sys.n_bands_sc * n_kx * n_ky, _sys.n_bands_sc * n_kx * n_ky, n_eigs, sigma);
+    Triplets triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
+    return arma_eigen_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
 }
 
 Eigen::VectorXd System2DCalculations::AbsDelta(double kx, double ky)
@@ -151,7 +151,7 @@ Eigen::VectorXd System2DCalculations::AbsDelta(double kx, double ky)
 // abelowe-dla oddzielonych od siebie pasm
 Eigen::VectorXd System2DCalculations::AbelianBerryCurvature(double kx, double ky)
 {
-    Eigen::VectorXd BC = Eigen::VectorXd::Zero(_sys.n_bands_sc);
+    Eigen::VectorXd BC = Eigen::VectorXd::Zero(2 * _sys.n_bands);
 
     Eigen::MatrixXcd dvxH_mat = dHdkx(kx, ky);
     Eigen::MatrixXcd dvyH_mat = dHdky(kx, ky);
@@ -161,9 +161,9 @@ Eigen::VectorXd System2DCalculations::AbelianBerryCurvature(double kx, double ky
     // local solver to allow multi-threading
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> SAES(_sys.HBdG(kx, ky));
 
-    for (auto bi = 0; bi < _sys.n_bands_sc; ++bi) // bi - band index
+    for (auto bi = 0; bi < 2 * _sys.n_bands; ++bi) // bi - band index
     {
-        for (auto bj = 0; bj < _sys.n_bands_sc; ++bj)
+        for (auto bj = 0; bj < 2 * _sys.n_bands; ++bj)
         {
             if (bj == bi)
                 continue;
@@ -299,7 +299,7 @@ Eigen::VectorXd System2DCalculations::ChernNumbersUsingAbelianBerryCurvature(std
 {
     Eigen::VectorXd k_vec = generate_k_vec(n_dense, n_sparse, k_val);
 
-    Eigen::VectorXd phases = Eigen::VectorXd::Zero(_sys.n_bands_sc);
+    Eigen::VectorXd phases = Eigen::VectorXd::Zero(2 * _sys.n_bands);
 
     for (std::size_t i = 0; i < k_vec.size() - 1; ++i)
     {
