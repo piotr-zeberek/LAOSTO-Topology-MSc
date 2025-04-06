@@ -13,59 +13,85 @@ int main()
     // ToyModel sys;
     LAOSTO sys;
 
-    sys.Bx = T2au(0.0);
-    sys.By = T2au(0.0);
-    sys.Bz = T2au(5.0);
-
     System2DCalculations calc(sys);
     System2DCalculationsPrinter printer(calc);
 
-    Eigen::VectorXd k_vec = Eigen::VectorXd::LinSpaced(1001, -0.5, 0.5);
-    printer.printBandStructureSlice_normal("data/BS_slice.dat", k_vec, 0, 0.0);
+    // 2D k-space chern vs params
+    {
+        sys.mu = meV2au(0.0);
+        sys.Bx = T2au(0.0);
+        sys.By = T2au(0.0);
+        sys.Bz = T2au(0.0);
+
+        std::size_t n_par1 = 201;
+        std::size_t n_par2 = 201;
+        
+        std::size_t n_dense = 50;
+        std::size_t n_sparse = 20;
+
+        Eigen::VectorXd vec_par1 = Eigen::VectorXd::LinSpaced(n_par1, -4.0, 6.0);
+        Eigen::VectorXd vec_par2 = Eigen::VectorXd::LinSpaced(n_par2, 0.0, 5.0);
+
+        std::ofstream output_file("data/CN.dat");
+
+        for (auto i = 0; i < vec_par1.size(); ++i)
+        {
+            for (auto j = 0; j < vec_par2.size(); ++j)
+            {
+                sys.mu = meV2au(vec_par1(i));
+
+                // sys.Bx = T2au(vec_par2(j));
+                // sys.By = T2au(vec_par2(j));
+                sys.Bz = T2au(vec_par2(j));
+
+                output_file << vec_par1(i) << " " << vec_par2(j) << " " << calc.ChernNumberUsingWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
+            }
+        }
+    }
 
     // discrete hamiltonian energy vs parameters
     {
 
-        sys.mu = meV2au(0.0);
-        sys.Bx = T2au(0.0);
-        sys.By = T2au(0.0);
-        sys.Bz = T2au(5.0);
+        // sys.mu = meV2au(0.0);
+        // sys.Bx = T2au(0.0);
+        // sys.By = T2au(0.0);
+        // sys.Bz = T2au(5.0);
 
-        std::size_t n_kx = 351;
-        std::size_t n_ky = 9;
-        std::size_t n = 201;
+        // std::size_t n_kx = 351;
+        // std::size_t n_ky = 9;
+        // std::size_t n = 201;
 
-        // // kręcenie polem
-        //  double start = 0.0;
-        //  double end = 2.0 * M_PI;
-        //  Eigen::VectorXd vec = Eigen::VectorXd::LinSpaced(n, start, end);
+        // // // kręcenie polem
+        // //  double start = 0.0;
+        // //  double end = 2.0 * M_PI;
+        // //  Eigen::VectorXd vec = Eigen::VectorXd::LinSpaced(n, start, end);
+
+        // // std::ofstream output_file("data/energy.dat");
+
+        // // for (auto i = 0; i < n; ++i)
+        // // {
+        // //     sys._p.Bx = T2au(0.3) * std::cos(vec(i));
+        // //     sys._p.By = T2au(0.3) * std::sin(vec(i));
+        // //     // sys._p.mu = meV2au(vec(i));
+        // //     auto [evals, evecs] = sys.H_discrete_eigendecomposiiton(n_kx, n_ky);
+        // //     output_file << vec(i) << " " << evals.transpose() / meV2au(1) << std::endl;
+        // // }
+
+        // // samo pole
+        // double start = 2.0;
+        // double end = 5.0;
+        // Eigen::VectorXd vec = Eigen::VectorXd::LinSpaced(n, start, end);
 
         // std::ofstream output_file("data/energy.dat");
 
         // for (auto i = 0; i < n; ++i)
         // {
-        //     sys._p.Bx = T2au(0.3) * std::cos(vec(i));
-        //     sys._p.By = T2au(0.3) * std::sin(vec(i));
-        //     // sys._p.mu = meV2au(vec(i));
-        //     auto [evals, evecs] = sys.H_discrete_eigendecomposiiton(n_kx, n_ky);
+        //     // sys.Bx = T2au(vec(i));
+        //     sys.mu = meV2au(vec(i));
+        //     auto evals = calc.eigenvals_sparse_discrete(n_kx, n_ky, 30);
+        //     std::sort(evals.data(), evals.data() + evals.size());
         //     output_file << vec(i) << " " << evals.transpose() / meV2au(1) << std::endl;
         // }
-
-        // samo pole
-        double start = 2.0;
-        double end = 5.0;
-        Eigen::VectorXd vec = Eigen::VectorXd::LinSpaced(n, start, end);
-
-        std::ofstream output_file("data/energy.dat");
-
-        for (auto i = 0; i < n; ++i)
-        {
-            // sys.Bx = T2au(vec(i));
-            sys.mu = meV2au(vec(i));
-            auto evals = calc.eigenvals_sparse_discrete(n_kx, n_ky, 30);
-            std::sort(evals.data(), evals.data() + evals.size());
-            output_file << vec(i) << " " << evals.transpose() / meV2au(1) << std::endl;
-        }
     }
 
     // discrete system prob den
