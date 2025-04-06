@@ -3,8 +3,7 @@
 
 #include "System2D.h"
 
-#include <iostream> // needed for ArpackSupport
-#include <unsupported/Eigen/ArpackSupport>
+#include <Eigen/SVD>
 
 using Point2D = Eigen::Vector2d;
 
@@ -12,7 +11,7 @@ class System2DCalculations
 {
 public:
     System2DCalculations() = delete;
-    System2DCalculations(System2D &sys) : _sys(sys) {}
+    System2DCalculations(System2D &sys) : _sys(sys), _SAES(sys.n_bands * 2), _SVD(sys.n_bands * 2, sys.n_bands * 2) {}
 
     const System2D &system() { return _sys; }
 
@@ -26,8 +25,8 @@ public:
     Eigen::VectorXd eigenvals_normal(double kx, double ky);
     Eigen::VectorXd eigenvals_discrete_ky(double kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_discrete(std::size_t n_kx, std::size_t n_ky);
-    Eigen::VectorXd eigenvals_sprase_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
-    Eigen::VectorXd eigenvals_sprase_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    Eigen::VectorXd eigenvals_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    Eigen::VectorXd eigenvals_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
 
     Eigen::MatrixXcd eigenvecs(double kx, double ky);
     Eigen::MatrixXcd eigenvecs_normal(double kx, double ky);
@@ -38,8 +37,8 @@ public:
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_normal(double kx, double ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_ky(double kx, std::size_t n_ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete(std::size_t n_kx, std::size_t n_ky);
-    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sprase_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
-    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sprase_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
 
     Eigen::VectorXd AbsDelta(double kx, double ky);
 
@@ -63,7 +62,7 @@ public:
 
 private:
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> _SAES;
-    Eigen::ArpackGeneralizedSelfAdjointEigenSolver<SparseHamiltonian> _ArpackSAES;
+    Eigen::JacobiSVD<Eigen::MatrixXcd, Eigen::ComputeFullU | Eigen::ComputeFullV> _SVD;
     System2D &_sys;
 };
 

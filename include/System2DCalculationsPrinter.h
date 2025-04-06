@@ -11,6 +11,7 @@ public:
 
     void printBandStructure(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
     void printBandStructureSlice(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
+    void printBandStructureSlice_normal(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
     void printBandStructure_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky);
     void printBandStructure_sparse_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     

@@ -33,6 +33,26 @@ void System2DCalculationsPrinter::printBandStructureSlice(const std::string &out
     }
 }
 
+void System2DCalculationsPrinter::printBandStructureSlice_normal(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0)
+{
+    std::ofstream output_file(output_filename);
+
+    if (axis == 0)
+    {
+        for (auto kx : k_vec)
+            output_file << kx << " " << _calc.eigenvals_normal(kx, k0).transpose() / meV2au(1.0) << "\n";
+    }
+    else if (axis == 1)
+    {
+        for (auto ky : k_vec)
+            output_file << ky << " " << _calc.eigenvals_normal(k0, ky).transpose() / meV2au(1.0) << "\n";
+    }
+    else
+    {
+        std::cerr << "Invalid axis. Choose 0 or 1." << std::endl;
+    }
+}
+
 void System2DCalculationsPrinter::printBandStructure_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky)
 {
     std::ofstream output_file(output_filename);
@@ -51,7 +71,7 @@ void System2DCalculationsPrinter::printBandStructure_sparse_discrete_ky(const st
 
     for (auto kx : kx_vec)
     {
-        auto evals = _calc.eigenvals_sprase_discrete_ky(kx, n_ky, n_eigs, sigma);
+        auto evals = _calc.eigenvals_sparse_discrete_ky(kx, n_ky, n_eigs, sigma);
 
         output_file << kx << " " << evals.transpose() / meV2au(1.0) << std::endl;
     }
@@ -61,7 +81,7 @@ void System2DCalculationsPrinter::printProbDen_sparse_discrete(const std::string
 {
     std::ofstream output_file(output_filename);
 
-    auto [evals, evecs] = _calc.eigen_sprase_discrete(nk_x, nk_y, 1, E);
+    auto [evals, evecs] = _calc.eigen_sparse_discrete(nk_x, nk_y, 1, E);
     Eigen::VectorXd prob_den_orbitals = evecs.col(0).cwiseAbs2();
 
     output_file << "# E = " << E / meV2au(1) << " eval = " << evals(0) / meV2au(1) << std::endl;
@@ -100,11 +120,11 @@ void System2DCalculationsPrinter::printAbsDeltaAlongContour(const std::string &o
 //     std::ofstream delta_file(delta_filename);
 //     std::ofstream DT_file(DT_filename);
 
-//     std::size_t half_bands = _n_bands / 2;
+//     std::size_t half_bands = _calc.system().n_bands;
 //     std::size_t orbital_bands = half_bands / 2;
 
-//     Eigen::MatrixXcd H(_n_bands, _n_bands);
-//     Eigen::MatrixXcd U = Eigen::MatrixXcd::Zero(_n_bands, _n_bands);
+//     Eigen::MatrixXcd H(_calc.system().n_bands, _calc.system().n_bands);
+//     Eigen::MatrixXcd U = Eigen::MatrixXcd::Zero(_calc.system().n_bands, _calc.system().n_bands);
 
 //     Eigen::MatrixXcd delta_matrix(half_bands, half_bands);
 //     Eigen::VectorXcd delta_matrix_vector_view(half_bands * half_bands);

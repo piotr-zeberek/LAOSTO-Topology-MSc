@@ -1,5 +1,16 @@
 #include "utils.h"
 
+#include <pybind11/embed.h>
+#include <pybind11/eigen.h>
+
+namespace py = pybind11;
+using namespace py::literals;
+
+py::scoped_interpreter guard{};
+py::module np = py::module::import("numpy");
+py::module sp = py::module::import("scipy.sparse");
+py::function eigsh = sp.attr("linalg").attr("eigsh");
+
 void adjoint_triplets(std::vector<Triplet> &triplets)
 {
     for (auto &t : triplets)
@@ -55,61 +66,72 @@ void add_triplets(std::vector<Triplet> &triplets, const std::vector<Triplet> &tr
     }
 }
 
-Eigen::VectorXd arma_eigenvals_sparse(const std::vector<Triplet> &triplets, std::size_t rows, std::size_t cols, std::size_t n_eigs, double sigma, double tol)
+// // using scipy
+// py::object create_sparse_matrix(const std::vector<Triplet> &triplets, std::size_t size)
+// {
+//     // std::vector<int> rows(triplets.size());
+//     // std::vector<int> cols(triplets.size());
+//     // std::vector<std::complex<double>> values(triplets.size());
+
+//     // for (int i = 0; i < triplets.size(); ++i)
+//     // {
+//     //     const auto &t = triplets[i];
+//     //     rows[i] = t.row();
+//     //     cols[i] = t.col();
+//     //     values[i] = t.value();
+//     // }
+
+//     // py::array_t<int> rows_array = py::array_t<int>(rows.size(), rows.data());
+//     // py::array_t<int> cols_array = py::array_t<int>(cols.size(), cols.data());
+//     // py::array_t<std::complex<double>> values_array = py::array_t<std::complex<double>>(values.size(), values.data());
+
+//     py::array_t<int> rows_array = np.attr("zeros")(triplets.size(), np.attr("uint32"));
+//     py::array_t<int> cols_array = np.attr("zeros")(triplets.size(), np.attr("uint32"));
+//     py::array_t<std::complex<double>> values_array = np.attr("zeros")(triplets.size(), np.attr("complex128"));
+
+//     for (int i = 0; i < triplets.size(); ++i)
+//     {
+//         const auto &t = triplets[i];
+//         rows_array.mutable_at(i) = t.row();
+//         cols_array.mutable_at(i) = t.col();
+//         values_array.mutable_at(i) = t.value();
+//     }
+
+//     py::object sparse_matrix = sp.attr("coo_matrix")(py::make_tuple(values_array, py::make_tuple(rows_array, cols_array)), py::make_tuple(size, size));
+
+//     return sparse_matrix;
+// }
+
+Eigen::VectorXd eigenvals_sparse(const std::vector<Triplet> &triplets, std::size_t size, std::size_t n_eigs, double sigma, double tol)
 {
-    arma::sp_cx_mat armaHsp(rows, cols);
+    Eigen::SparseMatrix<std::complex<double>> Hsp(size, size);
+    Hsp.reserve(triplets.size());
+    Hsp.setFromTriplets(triplets.begin(), triplets.end());
 
-    for (const auto &t : triplets)
-    {
-        armaHsp(t.row(), t.col()) = t.value();
-    }
+    auto kwargs = py::dict("A"_a = Hsp, "k"_a = n_eigs, "sigma"_a = sigma, "ncv"_a = 3 * n_eigs + 10, "tol"_a = tol, "return_eigenvectors"_a = false);
 
-    arma::eigs_opts opts;
-    opts.tol = tol;
-    opts.subdim = 3 * n_eigs + 10;
+    py::object result = eigsh(**kwargs);
 
-    arma::cx_vec eigval;
-    arma::eigs_gen(eigval, armaHsp, n_eigs, sigma, opts);
+    Eigen::VectorXd eigenvalues = py::cast<Eigen::VectorXd>(result);
 
-    Eigen::VectorXd evals(n_eigs);
+    // Sort eigenvalues
+    std::sort(eigenvalues.data(), eigenvalues.data() + eigenvalues.size());
 
-    for (auto i = 0; i < eigval.size(); ++i)
-    {
-        evals(i) = eigval(i).real();
-    }
-
-    return evals;
+    return eigenvalues;
 }
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXcd> arma_eigen_sparse(const std::vector<Triplet> &triplets, std::size_t rows, std::size_t cols, std::size_t n_eigs, double sigma, double tol)
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse(const std::vector<Triplet> &triplets, std::size_t size, std::size_t n_eigs, double sigma, double tol)
 {
-    arma::sp_cx_mat armaHsp(rows, cols);
+    Eigen::SparseMatrix<std::complex<double>> Hsp(size, size);
+    Hsp.reserve(triplets.size());
+    Hsp.setFromTriplets(triplets.begin(), triplets.end());
 
-    for (const auto &t : triplets)
-    {
-        armaHsp(t.row(), t.col()) = t.value();
-    }
+    auto kwargs = py::dict("A"_a = Hsp, "k"_a = n_eigs, "sigma"_a = sigma, "ncv"_a = 3 * n_eigs + 10, "tol"_a = tol, "return_eigenvectors"_a = true);
 
-    arma::eigs_opts opts;
-    opts.tol = tol;
-    opts.subdim = 3 * n_eigs + 10;
+    py::object result = eigsh(**kwargs);
 
-    arma::cx_vec eigval;
-    arma::cx_mat eigvec;
-    arma::eigs_gen(eigval, eigvec, armaHsp, n_eigs, sigma, opts);
+    Eigen::VectorXd eigenvalues = py::cast<Eigen::VectorXd>(py::cast<py::tuple>(result)[0]);
+    Eigen::MatrixXcd eigenvectors = py::cast<Eigen::MatrixXcd>(py::cast<py::tuple>(result)[1]);
 
-    Eigen::VectorXd evals(n_eigs);
-    Eigen::MatrixXcd evecs(rows, n_eigs);
-
-    for (auto i = 0; i < eigval.size(); ++i)
-    {
-        evals(i) = eigval(i).real();
-
-        for (auto j = 0; j < rows; ++j)
-        {
-            evecs(j, i) = eigvec(j, i);
-        }
-    }
-
-    return {evals, evecs};
+    return {eigenvalues, eigenvectors};
 }

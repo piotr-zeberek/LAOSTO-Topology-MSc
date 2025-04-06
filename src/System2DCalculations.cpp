@@ -5,7 +5,6 @@
 #include <fstream>
 #include <thread>
 
-#include <Eigen/SVD>
 
 Hamiltonian System2DCalculations::dHdkx(double kx, double ky, double dk) const
 {
@@ -59,16 +58,16 @@ Eigen::VectorXd System2DCalculations::eigenvals_discrete(std::size_t n_kx, std::
     return _SAES.compute(_sys.HBdG_discrete(n_kx, n_ky), Eigen::EigenvaluesOnly).eigenvalues();
 };
 
-Eigen::VectorXd System2DCalculations::eigenvals_sprase_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    Triplets triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
-    return arma_eigenvals_sparse(triplets, 2 * _sys.n_bands * n_ky, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
+    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
+    return eigenvals_sparse(triplets, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
 };
 
-Eigen::VectorXd System2DCalculations::eigenvals_sprase_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    Triplets triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
-    return arma_eigenvals_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
+    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
+    return eigenvals_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
 };
 
 Eigen::MatrixXcd System2DCalculations::eigenvecs(double kx, double ky)
@@ -115,16 +114,16 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_discret
     return std::make_pair(_SAES.eigenvalues(), _SAES.eigenvectors());
 };
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sprase_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    Triplets triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
-    return arma_eigen_sparse(triplets, 2 * _sys.n_bands * n_ky, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
+    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
+    return eigen_sparse(triplets, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
 }
 
-std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sprase_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    Triplets triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
-    return arma_eigen_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
+    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
+    return eigen_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
 }
 
 Eigen::VectorXd System2DCalculations::AbsDelta(double kx, double ky)
@@ -192,19 +191,17 @@ double System2DCalculations::BerryCurvatureFromWilsonLoop(double kx, double ky, 
 
     Eigen::MatrixXcd W = Eigen::MatrixXcd::Identity(_sys.n_bands, _sys.n_bands);
 
-    Eigen::JacobiSVD<Eigen::MatrixXcd> svd(_sys.n_bands, _sys.n_bands, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    _SVD.compute(Umm.leftCols(_sys.n_bands).adjoint() * Upm.leftCols(_sys.n_bands));
+    W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
-    svd.compute(Umm.leftCols(_sys.n_bands).adjoint() * Upm.leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-    W *= svd.matrixU() * svd.matrixV().adjoint();
+    _SVD.compute(Upm.leftCols(_sys.n_bands).adjoint() * Upp.leftCols(_sys.n_bands));
+    W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
-    svd.compute(Upm.leftCols(_sys.n_bands).adjoint() * Upp.leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-    W *= svd.matrixU() * svd.matrixV().adjoint();
+    _SVD.compute(Upp.leftCols(_sys.n_bands).adjoint() * Ump.leftCols(_sys.n_bands));
+    W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
-    svd.compute(Upp.leftCols(_sys.n_bands).adjoint() * Ump.leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-    W *= svd.matrixU() * svd.matrixV().adjoint();
-
-    svd.compute(Ump.leftCols(_sys.n_bands).adjoint() * Umm.leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-    W *= svd.matrixU() * svd.matrixV().adjoint();
+    _SVD.compute(Ump.leftCols(_sys.n_bands).adjoint() * Umm.leftCols(_sys.n_bands));
+    W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
     double BC = std::arg(W.determinant()) / (dk * dk);
 
@@ -273,19 +270,17 @@ Eigen::VectorXd System2DCalculations::WilsonLoopSpectrum(std::size_t n, int axis
     Eigen::MatrixXcd *Ui_ptr = &Ui;
     Eigen::MatrixXcd *Uip_ptr = &Uip;
 
-    Eigen::JacobiSVD<Eigen::MatrixXcd> svd(_sys.n_bands, _sys.n_bands, Eigen::ComputeFullU | Eigen::ComputeFullV);
-
     for (std::size_t i = 1; i < n - 1; ++i)
     {
         *Uip_ptr = eigenvecs(kx_vec(i), ky_vec(i));
-        svd.compute((*Ui_ptr).leftCols(_sys.n_bands).adjoint() * (*Uip_ptr).leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-        W *= svd.matrixU() * svd.matrixV().adjoint();
+        _SVD.compute((*Ui_ptr).leftCols(_sys.n_bands).adjoint() * (*Uip_ptr).leftCols(_sys.n_bands));
+        W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
         std::swap(Ui_ptr, Uip_ptr);
     }
 
-    svd.compute(_SAES.eigenvectors().leftCols(_sys.n_bands).adjoint() * U0.leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-    W *= svd.matrixU() * svd.matrixV().adjoint();
+    _SVD.compute(_SAES.eigenvectors().leftCols(_sys.n_bands).adjoint() * U0.leftCols(_sys.n_bands));
+    W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
     Eigen::ComplexEigenSolver<Eigen::MatrixXcd> CES(W, Eigen::EigenvaluesOnly);
     Eigen::VectorXd phases = CES.eigenvalues().cwiseArg();
@@ -352,8 +347,6 @@ double System2DCalculations::ChernNumberUsingWilsonLoop(std::size_t n_dense, std
     double CN = 0.0;
     Eigen::MatrixXcd Wcw(_sys.n_bands, _sys.n_bands); // W_{clockwise}
 
-    Eigen::JacobiSVD<Eigen::MatrixXcd> svd(_sys.n_bands, _sys.n_bands, Eigen::ComputeFullU | Eigen::ComputeFullV);
-
     for (auto i = 0; i < rows - 1; ++i)
     {
         (*ni_evecs_ptr)(0) = eigenvecs(kx(i + 1), ky(0)); // contains eigenvectors and eigenvalues for next i, j=0
@@ -362,17 +355,17 @@ double System2DCalculations::ChernNumberUsingWilsonLoop(std::size_t n_dense, std
         {
             (*ni_evecs_ptr)(j + 1) = eigenvecs(kx(i + 1), ky(j + 1)); // contains eigenvectors and eigenvalues for next i, next j
 
-            svd.compute((*i_evecs_ptr)(j).leftCols(_sys.n_bands).adjoint() * (*i_evecs_ptr)(j + 1).leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-            Wcw = svd.matrixU() * svd.matrixV().adjoint();
+            _SVD.compute((*i_evecs_ptr)(j).leftCols(_sys.n_bands).adjoint() * (*i_evecs_ptr)(j + 1).leftCols(_sys.n_bands));
+            Wcw = _SVD.matrixU() * _SVD.matrixV().adjoint();
 
-            svd.compute((*i_evecs_ptr)(j + 1).leftCols(_sys.n_bands).adjoint() * (*ni_evecs_ptr)(j + 1).leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-            Wcw *= svd.matrixU() * svd.matrixV().adjoint();
+            _SVD.compute((*i_evecs_ptr)(j + 1).leftCols(_sys.n_bands).adjoint() * (*ni_evecs_ptr)(j + 1).leftCols(_sys.n_bands));
+            Wcw *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
-            svd.compute((*ni_evecs_ptr)(j + 1).leftCols(_sys.n_bands).adjoint() * (*ni_evecs_ptr)(j).leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-            Wcw *= svd.matrixU() * svd.matrixV().adjoint();
+            _SVD.compute((*ni_evecs_ptr)(j + 1).leftCols(_sys.n_bands).adjoint() * (*ni_evecs_ptr)(j).leftCols(_sys.n_bands));
+            Wcw *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
-            svd.compute((*ni_evecs_ptr)(j).leftCols(_sys.n_bands).adjoint() * (*i_evecs_ptr)(j).leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-            Wcw *= svd.matrixU() * svd.matrixV().adjoint();
+            _SVD.compute((*ni_evecs_ptr)(j).leftCols(_sys.n_bands).adjoint() * (*i_evecs_ptr)(j).leftCols(_sys.n_bands));
+            Wcw *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
             CN += std::arg(Wcw.determinant());
         }
@@ -456,7 +449,6 @@ double System2DCalculations::ChernNumberUsingWilsonLoop_discrete_ky(std::size_t 
     Eigen::VectorXd kx = generate_k_vec(n_dense, n_sparse, k_val);
 
     Eigen::MatrixXcd W = Eigen::MatrixXcd::Identity(_sys.n_bands, _sys.n_bands);
-    Eigen::JacobiSVD<Eigen::MatrixXcd> svd(_sys.n_bands, _sys.n_bands, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
     Eigen::MatrixXcd U0 = eigenvecs_discrete_ky(kx(0), n_ky);
     Eigen::MatrixXcd Ui = U0;
@@ -468,14 +460,14 @@ double System2DCalculations::ChernNumberUsingWilsonLoop_discrete_ky(std::size_t 
     for (std::size_t i = 1; i < kx.size() - 1; ++i)
     {
         *Uip_ptr = eigenvecs_discrete_ky(kx(i), n_ky);
-        svd.compute((*Ui_ptr).leftCols(_sys.n_bands).adjoint() * (*Uip_ptr).leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-        W *= svd.matrixU() * svd.matrixV().adjoint();
+        _SVD.compute((*Ui_ptr).leftCols(_sys.n_bands).adjoint() * (*Uip_ptr).leftCols(_sys.n_bands));
+        W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
         std::swap(Ui_ptr, Uip_ptr);
     }
 
-    svd.compute(_SAES.eigenvectors().leftCols(_sys.n_bands).adjoint() * U0.leftCols(_sys.n_bands), Eigen::ComputeFullU | Eigen::ComputeFullV);
-    W *= svd.matrixU() * svd.matrixV().adjoint();
+    _SVD.compute(_SAES.eigenvectors().leftCols(_sys.n_bands).adjoint() * U0.leftCols(_sys.n_bands));
+    W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
     return std::arg(W.determinant()) / (2.0 * M_PI);
 }
