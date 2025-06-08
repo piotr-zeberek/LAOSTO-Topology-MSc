@@ -1,389 +1,343 @@
 #include "System2D.h"
 
-#include <iostream>
-
-void System2D::update_HBdG_nonzero_indices()
+Hamiltonian System2D::Hk(double kx, double ky) const
 {
-    HBdG_discrete_ky_onsite_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_ky_onsite_nonzero_indices, Delta_discrete_ky_onsite_nonzero_indices, Delta_Adjoint_discrete_ky_onsite_nonzero_indices, mHmkT_discrete_ky_onsite_nonzero_indices);
-    HBdG_discrete_ky_hopping_p_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_ky_hopping_p_nonzero_indices, Delta_discrete_ky_hopping_p_nonzero_indices, Delta_Adjoint_discrete_ky_hopping_p_nonzero_indices, mHmkT_discrete_ky_hopping_p_nonzero_indices);
-    HBdG_discrete_ky_hopping_m_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_ky_hopping_m_nonzero_indices, Delta_discrete_ky_hopping_m_nonzero_indices, Delta_Adjoint_discrete_ky_hopping_m_nonzero_indices, mHmkT_discrete_ky_hopping_m_nonzero_indices);
-
-    HBdG_discrete_onsite_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_onsite_nonzero_indices, Delta_discrete_onsite_nonzero_indices, Delta_Adjoint_discrete_onsite_nonzero_indices, mHmkT_discrete_onsite_nonzero_indices);
-    HBdG_discrete_hopping_xp_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_hopping_xp_nonzero_indices, Delta_discrete_hopping_xp_nonzero_indices, Delta_Adjoint_discrete_hopping_xp_nonzero_indices, mHmkT_discrete_hopping_xp_nonzero_indices);
-    HBdG_discrete_hopping_xm_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_hopping_xm_nonzero_indices, Delta_discrete_hopping_xm_nonzero_indices, Delta_Adjoint_discrete_hopping_xm_nonzero_indices, mHmkT_discrete_hopping_xm_nonzero_indices);
-    HBdG_discrete_hopping_yp_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_hopping_yp_nonzero_indices, Delta_discrete_hopping_yp_nonzero_indices, Delta_Adjoint_discrete_hopping_yp_nonzero_indices, mHmkT_discrete_hopping_yp_nonzero_indices);
-    HBdG_discrete_hopping_ym_nonzero_indices = assemble_HBdG_nonzero_indices(Hk_discrete_hopping_ym_nonzero_indices, Delta_discrete_hopping_ym_nonzero_indices, Delta_Adjoint_discrete_hopping_ym_nonzero_indices, mHmkT_discrete_hopping_ym_nonzero_indices);
+    return assemble_matrix(Hk_triplets(kx, ky), n_bands, n_bands);
 }
 
 Hamiltonian System2D::Hk_discrete_ky(double kx, std::size_t n_ky) const
 {
-    return assemble_matrix_discrete_ky(kx, n_ky, [this](double kx, double y)
-                                       { return Hk_discrete_ky_onsite(kx, y); }, [this](double kx, double y)
-                                       { return Hk_discrete_ky_hopping_p(kx, y); }, [this](double kx, double y)
-                                       { return Hk_discrete_ky_hopping_m(kx, y); });
+    return assemble_matrix(Hk_discrete_ky_triplets(kx, n_ky), n_bands * n_ky, n_bands * n_ky);
+}
+
+SparseHamiltonian System2D::Hk_discrete_ky_sparse(double kx, std::size_t n_ky) const
+{
+    return assemble_sparse_matrix(Hk_discrete_ky_triplets(kx, n_ky), n_bands * n_ky, n_bands * n_ky);
 }
 
 Hamiltonian System2D::Hk_discrete(std::size_t n_kx, std::size_t n_ky) const
 {
-    return assemble_matrix_discrete(n_kx, n_ky, [this](double x, double y)
-                                    { return Hk_discrete_onsite(x, y); }, [this](double x, double y)
-                                    { return Hk_discrete_hopping_xp(x, y); }, [this](double x, double y)
-                                    { return Hk_discrete_hopping_xm(x, y); }, [this](double x, double y)
-                                    { return Hk_discrete_hopping_yp(x, y); }, [this](double x, double y)
-                                    { return Hk_discrete_hopping_ym(x, y); });
+    return assemble_matrix(Hk_discrete_triplets(n_kx, n_ky), n_bands * n_kx * n_ky, n_bands * n_kx * n_ky);
 }
 
-std::vector<Triplet> System2D::triplets_Hk_discrete_ky(double kx, std::size_t n_ky) const
+SparseHamiltonian System2D::Hk_discrete_sparse(std::size_t n_kx, std::size_t n_ky) const
 {
-    return assemble_triplets_discrete_ky(kx, n_ky, [this](double kx, double y)
-                                         { return Hk_discrete_ky_onsite(kx, y); }, [this](double kx, double y)
-                                         { return Hk_discrete_ky_hopping_p(kx, y); }, [this](double kx, double y)
-                                         { return Hk_discrete_ky_hopping_m(kx, y); }, Hk_discrete_ky_onsite_nonzero_indices, Hk_discrete_ky_hopping_p_nonzero_indices, Hk_discrete_ky_hopping_m_nonzero_indices);
-}
-
-std::vector<Triplet> System2D::triplets_Hk_discrete(std::size_t n_kx, std::size_t n_ky) const
-{
-    return assemble_triplets_discrete(n_kx, n_ky, [this](double x, double y)
-                                      { return Hk_discrete_onsite(x, y); }, [this](double x, double y)
-                                      { return Hk_discrete_hopping_xp(x, y); }, [this](double x, double y)
-                                      { return Hk_discrete_hopping_xm(x, y); }, [this](double x, double y)
-                                      { return Hk_discrete_hopping_yp(x, y); }, [this](double x, double y)
-                                      { return Hk_discrete_hopping_ym(x, y); }, Hk_discrete_onsite_nonzero_indices, Hk_discrete_hopping_xp_nonzero_indices, Hk_discrete_hopping_xm_nonzero_indices, Hk_discrete_hopping_yp_nonzero_indices, Hk_discrete_hopping_ym_nonzero_indices);
+    return assemble_sparse_matrix(Hk_discrete_triplets(n_kx, n_ky), n_bands * n_kx * n_ky, n_bands * n_kx * n_ky);
 }
 
 Hamiltonian System2D::HBdG(double kx, double ky) const
 {
-    return assemble_HBdG(Hk(kx, ky), Delta(kx, ky), Delta_Adjoint(kx, ky), mHmkT(kx, ky));
+    return assemble_matrix(HBdG_triplets(kx, ky), n_bands * 2, n_bands * 2);
 }
 
 Hamiltonian System2D::HBdG_discrete_ky(double kx, std::size_t n_ky) const
 {
-    return assemble_matrix_discrete_ky(kx, n_ky, [this](double kx, double y)
-                                       { return HBdG_discrete_ky_onsite(kx, y); }, [this](double kx, double y)
-                                       { return HBdG_discrete_ky_hopping_p(kx, y); }, [this](double kx, double y)
-                                       { return HBdG_discrete_ky_hopping_m(kx, y); });
+    return assemble_matrix(HBdG_discrete_ky_triplets(kx, n_ky), n_bands * 2 * n_ky, n_bands * 2 * n_ky);
+}
+
+SparseHamiltonian System2D::HBdG_discrete_ky_sparse(double kx, std::size_t n_ky) const
+{
+    return assemble_sparse_matrix(HBdG_discrete_ky_triplets(kx, n_ky), n_bands * 2 * n_ky, n_bands * 2 * n_ky);
 }
 
 Hamiltonian System2D::HBdG_discrete(std::size_t n_kx, std::size_t n_ky) const
 {
-    return assemble_matrix_discrete(n_kx, n_ky, [this](double x, double y)
-                                    { return HBdG_discrete_onsite(x, y); }, [this](double x, double y)
-                                    { return HBdG_discrete_hopping_xp(x, y); }, [this](double x, double y)
-                                    { return HBdG_discrete_hopping_xm(x, y); }, [this](double x, double y)
-                                    { return HBdG_discrete_hopping_yp(x, y); }, [this](double x, double y)
-                                    { return HBdG_discrete_hopping_ym(x, y); });
+    return assemble_matrix(HBdG_discrete_triplets(n_kx, n_ky), n_bands * 2 * n_kx * n_ky, n_bands * 2 * n_kx * n_ky);
 }
 
-std::vector<Triplet> System2D::triplets_HBdG_discrete_ky(double kx, std::size_t n_ky) const
+SparseHamiltonian System2D::HBdG_discrete_sparse(std::size_t n_kx, std::size_t n_ky) const
 {
-    return assemble_triplets_discrete_ky(kx, n_ky, [this](double kx, double y)
-                                         { return HBdG_discrete_ky_onsite(kx, y); }, [this](double kx, double y)
-                                         { return HBdG_discrete_ky_hopping_p(kx, y); }, [this](double kx, double y)
-                                         { return HBdG_discrete_ky_hopping_m(kx, y); }, HBdG_discrete_ky_onsite_nonzero_indices, HBdG_discrete_ky_hopping_p_nonzero_indices, HBdG_discrete_ky_hopping_m_nonzero_indices);
+    return assemble_sparse_matrix(HBdG_discrete_triplets(n_kx, n_ky), n_bands * 2 * n_kx * n_ky, n_bands * 2 * n_kx * n_ky);
 }
 
-std::vector<Triplet> System2D::triplets_HBdG_discrete(std::size_t n_kx, std::size_t n_ky) const
-{
-    return assemble_triplets_discrete(n_kx, n_ky, [this](double x, double y)
-                                      { return HBdG_discrete_onsite(x, y); }, [this](double x, double y)
-                                      { return HBdG_discrete_hopping_xp(x, y); }, [this](double x, double y)
-                                      { return HBdG_discrete_hopping_xm(x, y); }, [this](double x, double y)
-                                      { return HBdG_discrete_hopping_yp(x, y); }, [this](double x, double y)
-                                      { return HBdG_discrete_hopping_ym(x, y); }, HBdG_discrete_onsite_nonzero_indices, HBdG_discrete_hopping_xp_nonzero_indices, HBdG_discrete_hopping_xm_nonzero_indices, HBdG_discrete_hopping_yp_nonzero_indices, HBdG_discrete_hopping_ym_nonzero_indices);
-}
-
-Hamiltonian System2D::HBdG_discrete_ky_onsite(double kx, double y) const
-{
-    return assemble_HBdG(Hk_discrete_ky_onsite(kx, y), Delta_discrete_ky_onsite(kx, y), Delta_Adjoint_discrete_ky_onsite(kx, y), mHmkT_discrete_ky_onsite(kx, y));
-}
-
-Hamiltonian System2D::HBdG_discrete_ky_hopping_p(double kx, double y) const
-{
-    return assemble_HBdG(Hk_discrete_ky_hopping_p(kx, y), Delta_discrete_ky_hopping_p(kx, y), Delta_Adjoint_discrete_ky_hopping_p(kx, y), mHmkT_discrete_ky_hopping_p(kx, y));
-}
-
-Hamiltonian System2D::HBdG_discrete_ky_hopping_m(double kx, double y) const
-{
-    return assemble_HBdG(Hk_discrete_ky_hopping_m(kx, y), Delta_discrete_ky_hopping_m(kx, y), Delta_Adjoint_discrete_ky_hopping_m(kx, y), mHmkT_discrete_ky_hopping_m(kx, y));
-}
-
-Hamiltonian System2D::HBdG_discrete_onsite(double x, double y) const
-{
-    return assemble_HBdG(Hk_discrete_onsite(x, y), Delta_discrete_onsite(x, y), Delta_Adjoint_discrete_onsite(x, y), mHmkT_discrete_onsite(x, y));
-}
-
-Hamiltonian System2D::HBdG_discrete_hopping_xp(double x, double y) const
-{
-    return assemble_HBdG(Hk_discrete_hopping_xp(x, y), Delta_discrete_hopping_xp(x, y), Delta_Adjoint_discrete_hopping_xp(x, y), mHmkT_discrete_hopping_xp(x, y));
-}
-
-Hamiltonian System2D::HBdG_discrete_hopping_xm(double x, double y) const
-{
-    return assemble_HBdG(Hk_discrete_hopping_xm(x, y), Delta_discrete_hopping_xm(x, y), Delta_Adjoint_discrete_hopping_xm(x, y), mHmkT_discrete_hopping_xm(x, y));
-}
-
-Hamiltonian System2D::HBdG_discrete_hopping_yp(double x, double y) const
-{
-    return assemble_HBdG(Hk_discrete_hopping_yp(x, y), Delta_discrete_hopping_yp(x, y), Delta_Adjoint_discrete_hopping_yp(x, y), mHmkT_discrete_hopping_yp(x, y));
-}
-
-Hamiltonian System2D::HBdG_discrete_hopping_ym(double x, double y) const
-{
-    return assemble_HBdG(Hk_discrete_hopping_ym(x, y), Delta_discrete_hopping_ym(x, y), Delta_Adjoint_discrete_hopping_ym(x, y), mHmkT_discrete_hopping_ym(x, y));
-}
-
-Hamiltonian System2D::assemble_HBdG(const Hamiltonian &Hk_mat, const Hamiltonian &Delta_mat, const Hamiltonian &Delta_Adjoint_mat, const Hamiltonian &mHmkT_mat) const
-{
-    Hamiltonian H(2 * n_bands, 2 * n_bands);
-
-    H << Hk_mat, Delta_mat,
-        Delta_Adjoint_mat, mHmkT_mat;
-
-    return H;
-}
-
-std::vector<ElementIndex> System2D::assemble_HBdG_nonzero_indices(const std::vector<ElementIndex> &Hk_nonzero_indices,
-                                                                  const std::vector<ElementIndex> &Delta_nonzero_indices,
-                                                                  const std::vector<ElementIndex> &Delta_Adjoint_nonzero_indices,
-                                                                  const std::vector<ElementIndex> &mHmkT_nonzero_indices) const
-{
-    std::vector<ElementIndex> nonzero_indices;
-    nonzero_indices.reserve(Hk_nonzero_indices.size() + Delta_nonzero_indices.size() + Delta_Adjoint_nonzero_indices.size() + mHmkT_nonzero_indices.size());
-
-    for (const auto &t : Hk_nonzero_indices)
-    {
-        nonzero_indices.push_back(t);
-    }
-
-    for (const auto &t : Delta_nonzero_indices)
-    {
-        nonzero_indices.emplace_back(t.row, t.col + n_bands);
-    }
-
-    for (const auto &t : Delta_Adjoint_nonzero_indices)
-    {
-        nonzero_indices.emplace_back(t.row + n_bands, t.col);
-    }
-
-    for (const auto &t : mHmkT_nonzero_indices)
-    {
-        nonzero_indices.emplace_back(t.row + n_bands, t.col + n_bands);
-    }
-
-    return nonzero_indices;
-}
-
-std::vector<Triplet> System2D::assemble_triplets_HBdG(const std::vector<Triplet> &Hk_triplets, const std::vector<Triplet> &Delta_triplets, const std::vector<Triplet> &Delta_adjoint_triplets, const std::vector<Triplet> &mHmkT_triplets) const
+std::vector<Triplet> System2D::generate_triplets(const Hamiltonian &H, bool only_upper_triangular) const
 {
     std::vector<Triplet> triplets;
-    triplets.reserve(Hk_triplets.size() + Delta_triplets.size() + Delta_adjoint_triplets.size() + mHmkT_triplets.size());
+    for (std::size_t i = 0; i < H.rows(); ++i)
+        for (std::size_t j = only_upper_triangular ? i : 0; j < H.cols(); ++j)
+            triplets.emplace_back(i, j, H(i, j));
+    return triplets;
+}
 
-    for (const auto &t : Hk_triplets)
+std::vector<Triplet> System2D::negate_triplets(const std::vector<Triplet> &triplets) const
+{
+    std::vector<Triplet> negated_triplets;
+    negated_triplets.reserve(triplets.size());
+    for (const auto &tr : triplets)
     {
-        triplets.push_back(t);
+        negated_triplets.emplace_back(tr.row(), tr.col(), -tr.value());
+    }
+    return negated_triplets;
+}
+
+std::vector<Triplet> System2D::Hk_discrete_ky_triplets(double kx, std::size_t n_ky) const
+{
+    std::size_t submatrix_size = n_bands;
+
+    std::vector<Triplet> triplets = assemble_triplets_discrete_ky(
+        [this](double kx, double y)
+        { return Hk_discrete_ky_onsite_triplets(kx, y); },
+        [this](double kx, double y)
+        { return Hk_discrete_ky_hopping_p_triplets(kx, y); },
+        kx, n_ky, submatrix_size);
+
+    return triplets;
+}
+
+std::vector<Triplet> System2D::Hk_discrete_triplets(std::size_t n_kx, std::size_t n_ky) const
+{
+    std::size_t submatrix_size = n_bands;
+
+    std::vector<Triplet> triplets = assemble_triplets_discrete(
+        [this](double x, double y)
+        { return Hk_discrete_onsite_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_xp_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_yp_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_pp_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_pm_triplets(x, y); },
+        n_kx, n_ky, submatrix_size);
+
+    return triplets;
+}
+
+std::vector<Triplet> System2D::join_triplets_for_HBdG(
+    const std::vector<Triplet> &Hk_tr,
+    const std::vector<Triplet> &Delta_tr,
+    const std::vector<Triplet> &mHmkT_tr) const
+{
+    std::vector<Triplet> triplets = Hk_tr;
+    triplets.reserve(Hk_tr.size() + Delta_tr.size() + mHmkT_tr.size());
+
+    for (const auto &tr : Delta_tr)
+    {
+        triplets.emplace_back(tr.row(), tr.col() + n_bands, tr.value());
     }
 
-    for (const auto &t : Delta_triplets)
+    for (const auto &tr : mHmkT_tr)
     {
-        triplets.emplace_back(t.row(), t.col() + n_bands, t.value());
-    }
-
-    for (const auto &t : Delta_adjoint_triplets)
-    {
-        triplets.emplace_back(t.row() + n_bands, t.col(), t.value());
-    }
-
-    for (const auto &t : mHmkT_triplets)
-    {
-        triplets.emplace_back(t.row() + n_bands, t.col() + n_bands, t.value());
+        triplets.emplace_back(tr.row() + n_bands, tr.col() + n_bands, tr.value());
     }
 
     return triplets;
 }
 
-Hamiltonian System2D::assemble_matrix_discrete_ky(double kx, std::size_t n_ky,
-                                                  const HamiltonianFunction &onsite,
-                                                  const HamiltonianFunction &hopping_p,
-                                                  const HamiltonianFunction &hopping_m) const
+std::vector<Triplet> System2D::HBdG_triplets(double kx, double ky) const
 {
-    std::size_t submatrix_size = onsite(kx, 0).rows();
-    Hamiltonian H = Hamiltonian::Zero(submatrix_size * n_ky, submatrix_size * n_ky);
-    int iy = 0;
+    std::vector<Triplet> Hk_tr = Hk_triplets(kx, ky);
+    std::vector<Triplet> Delta_tr = Delta_triplets(kx, ky);
+    std::vector<Triplet> mHmkT_tr = mHmkT_triplets(kx, ky);
+
+    return join_triplets_for_HBdG(Hk_tr, Delta_tr, mHmkT_tr);
+}
+
+std::vector<Triplet> System2D::HBdG_discrete_ky_triplets(double kx, std::size_t n_ky) const
+{
+    std::size_t submatrix_size = n_bands * 2;
+
+    std::vector<Triplet> Hk_tr = assemble_triplets_discrete_ky(
+        [this](double kx, double y)
+        { return Hk_discrete_ky_onsite_triplets(kx, y); },
+        [this](double kx, double y)
+        { return Hk_discrete_ky_hopping_p_triplets(kx, y); },
+        kx, n_ky, submatrix_size);
+
+    std::vector<Triplet> Delta_tr = assemble_triplets_discrete_ky(
+        [this](double kx, double y)
+        { return Delta_discrete_ky_onsite_triplets(kx, y); },
+        [this](double kx, double y)
+        { return Delta_discrete_ky_hopping_p_triplets(kx, y); },
+        kx, n_ky, submatrix_size);
+
+    std::vector<Triplet> mHmkT_tr = assemble_triplets_discrete_ky(
+        [this](double kx, double y)
+        { return mHmkT_discrete_ky_onsite_triplets(kx, y); },
+        [this](double kx, double y)
+        { return mHmkT_discrete_ky_hopping_p_triplets(kx, y); },
+        kx, n_ky, submatrix_size);
+
+    return join_triplets_for_HBdG(Hk_tr, Delta_tr, mHmkT_tr);
+}
+
+std::vector<Triplet> System2D::HBdG_discrete_triplets(std::size_t n_kx, std::size_t n_ky) const
+{
+    std::size_t submatrix_size = n_bands * 2;
+
+    std::vector<Triplet> Hk_tr = assemble_triplets_discrete(
+        [this](double x, double y)
+        { return Hk_discrete_onsite_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_xp_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_yp_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_pp_triplets(x, y); },
+        [this](double x, double y)
+        { return Hk_discrete_hopping_pm_triplets(x, y); },
+        n_kx, n_ky, submatrix_size);
+
+    std::vector<Triplet> Delta_tr = assemble_triplets_discrete(
+        [this](double x, double y)
+        { return Delta_discrete_onsite_triplets(x, y); },
+        [this](double x, double y)
+        { return Delta_discrete_hopping_xp_triplets(x, y); },
+        [this](double x, double y)
+        { return Delta_discrete_hopping_yp_triplets(x, y); },
+        [this](double x, double y)
+        { return Delta_discrete_hopping_pp_triplets(x, y); },
+        [this](double x, double y)
+        { return Delta_discrete_hopping_pm_triplets(x, y); },
+        n_kx, n_ky, submatrix_size);
+    std::vector<Triplet> mHmkT_tr = assemble_triplets_discrete(
+        [this](double x, double y)
+        { return mHmkT_discrete_onsite_triplets(x, y); },
+        [this](double x, double y)
+        { return mHmkT_discrete_hopping_xp_triplets(x, y); },
+        [this](double x, double y)
+        { return mHmkT_discrete_hopping_yp_triplets(x, y); },
+        [this](double x, double y)
+        { return mHmkT_discrete_hopping_pp_triplets(x, y); },
+        [this](double x, double y)
+        { return mHmkT_discrete_hopping_pm_triplets(x, y); },
+        n_kx, n_ky, submatrix_size);
+
+    return join_triplets_for_HBdG(Hk_tr, Delta_tr, mHmkT_tr);
+}
+
+void System2D::append_triplets(std::size_t row_offset, std::size_t col_offset,
+                               std::vector<Triplet> &target,
+                               const std::vector<Triplet> &source) const
+{
+    for (const auto &t : source)
+    {
+        target.emplace_back(t.row() + row_offset, t.col() + col_offset, t.value());
+    }
+}
+
+std::vector<Triplet> System2D::assemble_triplets_discrete_ky(const TripletFunc &onsite_tf,
+                                                             const TripletFunc &hopping_p_tf,
+                                                             double kx, std::size_t n_ky, std::size_t submatrix_size) const
+{
+    std::vector<Triplet> triplets;
+    triplets.reserve(2 * n_ky * (onsite_tf(kx, 0.0).size() + hopping_p_tf(kx, 0.0).size()));
+
+    double y = 0.0;
+
+    int is = 0;
+
+    int j = 0;
+    int js = 0;
 
     for (int i = 0; i < n_ky; ++i)
     {
-        double y = dy * i;
+        y = dy * i;
 
-        Hamiltonian o = onsite(kx, y);
-        Hamiltonian hp = hopping_p(kx, y);
-        Hamiltonian hm = hopping_m(kx, y);
+        is = i * submatrix_size;
 
-        H.block(i * submatrix_size, i * submatrix_size, submatrix_size, submatrix_size) = o;
+        // osite
+        j = i;
+        js = j * submatrix_size;
+        append_triplets(is, js, triplets, onsite_tf(kx, y));
 
-        iy = i - 1;
-        if (i % n_ky != 0)
-            H.block(i * submatrix_size, iy * submatrix_size, submatrix_size, submatrix_size) = hm;
-
-        iy = i + 1;
-        if (iy % n_ky != 0)
-            H.block(i * submatrix_size, iy * submatrix_size, submatrix_size, submatrix_size) = hp;
-    }
-
-    return H;
-}
-
-Hamiltonian System2D::assemble_matrix_discrete(std::size_t n_kx, std::size_t n_ky,
-                                               const HamiltonianFunction &onsite,
-                                               const HamiltonianFunction &hopping_xp,
-                                               const HamiltonianFunction &hopping_xm,
-                                               const HamiltonianFunction &hopping_yp,
-                                               const HamiltonianFunction &hopping_ym) const
-{
-    std::size_t submatrix_size = onsite(0, 0).rows();
-    Hamiltonian H = Hamiltonian::Zero(submatrix_size * n_kx * n_ky, submatrix_size * n_kx * n_ky);
-    int ix = 0;
-    int iy = 0;
-
-    for (int i = 0; i < n_kx * n_ky; ++i)
-    {
-        double x = dx * (i / n_ky);
-        double y = dy * (i % n_ky);
-
-        Hamiltonian o = onsite(x, y);
-        Hamiltonian hxp = hopping_xp(x, y);
-        Hamiltonian hxm = hopping_xm(x, y);
-        Hamiltonian hyp = hopping_yp(x, y);
-        Hamiltonian hym = hopping_ym(x, y);
-
-        H.block(i * submatrix_size, i * submatrix_size, submatrix_size, submatrix_size) = o;
-
-        iy = i - 1;
-        if (i % n_ky != 0)
-            H.block(i * submatrix_size, iy * submatrix_size, submatrix_size, submatrix_size) = hym;
-
-        iy = i + 1;
-        if (iy % n_ky != 0)
-            H.block(i * submatrix_size, iy * submatrix_size, submatrix_size, submatrix_size) = hyp;
-
-        ix = i - n_ky;
-        if (ix >= 0)
-            H.block(i * submatrix_size, ix * submatrix_size, submatrix_size, submatrix_size) = hxm;
-
-        ix = i + n_ky;
-        if (ix < n_kx * n_ky)
-            H.block(i * submatrix_size, ix * submatrix_size, submatrix_size, submatrix_size) = hxp;
-    }
-
-    return H;
-}
-
-std::vector<Triplet> System2D::assemble_triplets_discrete_ky(double kx, std::size_t n_ky,
-                                                             const HamiltonianFunction &onsite,
-                                                             const HamiltonianFunction &hopping_p,
-                                                             const HamiltonianFunction &hopping_m,
-                                                             const std::vector<ElementIndex> &onsite_nonzero_indices,
-                                                             const std::vector<ElementIndex> &hopping_p_nonzero_indices,
-                                                             const std::vector<ElementIndex> &hopping_m_nonzero_indices) const
-{
-    std::size_t submatrix_size = onsite(kx, 0).rows();
-    std::size_t n_elements = onsite_nonzero_indices.size() + hopping_p_nonzero_indices.size() + hopping_m_nonzero_indices.size();
-    std::vector<Triplet> triplets;
-    triplets.reserve(n_elements * n_ky);
-    int iy = 0;
-
-    for (int i = 0; i < n_ky; ++i)
-    {
-        double y = dy * i;
-
-        for (const auto &index : onsite_nonzero_indices)
-        {
-            auto [row, col] = index;
-            triplets.emplace_back(i * submatrix_size + row, i * submatrix_size + col, onsite(kx, y)(row, col));
-        }
-
-        iy = i - 1;
-        if (i % n_ky != 0)
-            for (const auto &index : hopping_m_nonzero_indices)
-            {
-                auto [row, col] = index;
-                triplets.emplace_back(i * submatrix_size + row, iy * submatrix_size + col, hopping_m(kx, y)(row, col));
-            }
-
-        iy = i + 1;
-        if (iy % n_ky != 0)
-            for (const auto &index : hopping_p_nonzero_indices)
-            {
-                auto [row, col] = index;
-                triplets.emplace_back(i * submatrix_size + row, iy * submatrix_size + col, hopping_p(kx, y)(row, col));
-            }
+        // hopping_p
+        j = i + 1;
+        js = j * submatrix_size;
+        if (j % n_ky != 0)
+            append_triplets(is, js, triplets, hopping_p_tf(kx, y));
     }
 
     return triplets;
 }
 
-std::vector<Triplet> System2D::assemble_triplets_discrete(std::size_t n_kx, std::size_t n_ky,
-                                                          const HamiltonianFunction &onsite,
-                                                          const HamiltonianFunction &hopping_xp,
-                                                          const HamiltonianFunction &hopping_xm,
-                                                          const HamiltonianFunction &hopping_yp,
-                                                          const HamiltonianFunction &hopping_ym,
-                                                          const std::vector<ElementIndex> &onsite_nonzero_indices,
-                                                          const std::vector<ElementIndex> &hopping_xp_nonzero_indices,
-                                                          const std::vector<ElementIndex> &hopping_xm_nonzero_indices,
-                                                          const std::vector<ElementIndex> &hopping_yp_nonzero_indices,
-                                                          const std::vector<ElementIndex> &hopping_ym_nonzero_indices) const
+std::vector<Triplet> System2D::assemble_triplets_discrete(const TripletFunc &onsite_tf,
+                                                          const TripletFunc &hopping_xp_tf,
+                                                          const TripletFunc &hopping_yp_tf,
+                                                          const TripletFunc &hopping_pp_tf,
+                                                          const TripletFunc &hopping_pm_tf,
+                                                          std::size_t n_kx, std::size_t n_ky, std::size_t submatrix_size) const
 {
-    std::size_t submatrix_size = onsite(0, 0).rows();
-    std::size_t n_elements = onsite_nonzero_indices.size() + hopping_xp_nonzero_indices.size() + hopping_xm_nonzero_indices.size() +
-                             hopping_yp_nonzero_indices.size() + hopping_ym_nonzero_indices.size();
     std::vector<Triplet> triplets;
-    triplets.reserve(n_elements * n_kx * n_ky);
-    int ix = 0;
-    int iy = 0;
+    triplets.reserve(2 * n_kx * n_ky * (onsite_tf(0.0, 0.0).size() + hopping_xp_tf(0.0, 0.0).size() + hopping_yp_tf(0.0, 0.0).size() + hopping_pp_tf(0.0, 0.0).size() + hopping_pm_tf(0.0, 0.0).size()));
+
+    double x = 0.0;
+    double y = 0.0;
+
+    int is = 0;
+
+    int j = 0;
+    int js = 0;
+
+    for (int i = 0; i < n_kx; ++i)
+    {
+        x = dx * i;
+        append_triplets(i * n_ky * submatrix_size, i * n_ky * submatrix_size, triplets, assemble_triplets_discrete_ky(onsite_tf, hopping_yp_tf, x, n_ky, submatrix_size));
+    }
 
     for (int i = 0; i < n_kx * n_ky; ++i)
     {
-        double x = dx * (i / n_ky);
-        double y = dy * (i % n_ky);
+        x = dx * (i / n_ky);
+        y = dy * (i % n_ky);
 
-        for (const auto &index : onsite_nonzero_indices)
-        {
-            auto [row, col] = index;
-            triplets.emplace_back(i * submatrix_size + row, i * submatrix_size + col, onsite(x, y)(row, col));
-        }
+        is = i * submatrix_size;
 
-        iy = i - 1;
-        if (i % n_ky != 0)
-            for (const auto &index : hopping_ym_nonzero_indices)
-            {
-                auto [row, col] = index;
-                triplets.emplace_back(i * submatrix_size + row, iy * submatrix_size + col, hopping_ym(x, y)(row, col));
-            }
+        // hopping_xp
+        j = i + n_ky;
+        js = j * submatrix_size;
+        if (j < n_kx * n_ky)
+            append_triplets(is, js, triplets, hopping_xp_tf(x, y));
 
-        iy = i + 1;
-        if (iy % n_ky != 0)
-            for (const auto &index : hopping_yp_nonzero_indices)
-            {
-                auto [row, col] = index;
-                triplets.emplace_back(i * submatrix_size + row, iy * submatrix_size + col, hopping_yp(x, y)(row, col));
-            }
+        // hopping_pp
+        j = i + n_ky + 1;
+        js = j * submatrix_size;
+        if (j % n_ky != 0 && j < n_kx * n_ky)
+            append_triplets(is, js, triplets, hopping_pp_tf(x, y));
 
-        ix = i - n_ky;
-        if (ix >= 0)
-            for (const auto &index : hopping_xm_nonzero_indices)
-            {
-                auto [row, col] = index;
-                triplets.emplace_back(i * submatrix_size + row, ix * submatrix_size + col, hopping_xm(x, y)(row, col));
-            }
-
-        ix = i + n_ky;
-        if (ix < n_kx * n_ky)
-            for (const auto &index : hopping_xp_nonzero_indices)
-            {
-                auto [row, col] = index;
-                triplets.emplace_back(i * submatrix_size + row, ix * submatrix_size + col, hopping_xp(x, y)(row, col));
-            }
+        // hopping_pm
+        j = i + n_ky - 1;
+        js = j * submatrix_size;
+        if ((j + 1) % n_ky != 0 && j < n_kx * n_ky)
+            append_triplets(is, js, triplets, hopping_pm_tf(x, y));
     }
 
     return triplets;
+}
+
+Hamiltonian System2D::assemble_matrix(const std::vector<Triplet> &triplets, std::size_t n_rows, std::size_t n_cols) const
+{
+    Hamiltonian H = Hamiltonian::Zero(n_rows, n_cols);
+
+    for (const auto &t : triplets)
+    {
+        H(t.row(), t.col()) = t.value();
+
+        if (t.row() != t.col()) // add conjugate for off-diagonal elements
+        {
+            H(t.col(), t.row()) = std::conj(t.value());
+        }
+    }
+
+    return H;
+}
+
+SparseHamiltonian System2D::assemble_sparse_matrix(const std::vector<Triplet> &triplets, std::size_t n_rows, std::size_t n_cols) const
+{
+    SparseHamiltonian H(n_rows, n_cols);
+
+    std::vector<Triplet> full_triplets = triplets;
+    full_triplets.reserve(triplets.size() * 2);
+
+    for (const auto &t : triplets)
+    {
+        if (t.row() != t.col()) // add conjugate for off-diagonal elements
+        {
+            full_triplets.emplace_back(t.col(), t.row(), std::conj(t.value()));
+        }
+    }
+
+    H.setFromTriplets(full_triplets.begin(), full_triplets.end());
+
+    return H;
 }

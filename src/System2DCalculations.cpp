@@ -5,7 +5,6 @@
 #include <fstream>
 #include <thread>
 
-
 Hamiltonian System2DCalculations::dHdkx(double kx, double ky, double dk) const
 {
     return (_sys.HBdG(kx + dk, ky) - _sys.HBdG(kx - dk, ky)) / (2.0 * dk);
@@ -60,14 +59,12 @@ Eigen::VectorXd System2DCalculations::eigenvals_discrete(std::size_t n_kx, std::
 
 Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
-    return eigenvals_sparse(triplets, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
+    return eigenvals_sparse(_sys.HBdG_discrete_ky_sparse(kx, n_ky), n_eigs, sigma);
 };
 
 Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
-    return eigenvals_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
+    return eigenvals_sparse(_sys.HBdG_discrete_sparse(n_kx, n_ky), n_eigs, sigma);
 };
 
 Eigen::MatrixXcd System2DCalculations::eigenvecs(double kx, double ky)
@@ -116,14 +113,12 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_discret
 
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete_ky(kx, n_ky);
-    return eigen_sparse(triplets, 2 * _sys.n_bands * n_ky, n_eigs, sigma);
+    return eigen_sparse(_sys.HBdG_discrete_ky_sparse(kx, n_ky), n_eigs, sigma);
 }
 
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
-    std::vector<Triplet> triplets = _sys.triplets_HBdG_discrete(n_kx, n_ky);
-    return eigen_sparse(triplets, 2 * _sys.n_bands * n_kx * n_ky, n_eigs, sigma);
+    return eigen_sparse(_sys.HBdG_discrete_sparse(n_kx, n_ky), n_eigs, sigma);
 }
 
 Eigen::VectorXd System2DCalculations::AbsDelta(double kx, double ky)
@@ -448,7 +443,9 @@ double System2DCalculations::ChernNumberUsingWilsonLoop_discrete_ky(std::size_t 
 {
     Eigen::VectorXd kx = generate_k_vec(n_dense, n_sparse, k_val);
 
-    Eigen::MatrixXcd W = Eigen::MatrixXcd::Identity(_sys.n_bands, _sys.n_bands);
+    std::size_t half_sc_bands = _sys.n_bands * n_ky;
+
+    Eigen::MatrixXcd W = Eigen::MatrixXcd::Identity(half_sc_bands, half_sc_bands);
 
     Eigen::MatrixXcd U0 = eigenvecs_discrete_ky(kx(0), n_ky);
     Eigen::MatrixXcd Ui = U0;
@@ -460,13 +457,13 @@ double System2DCalculations::ChernNumberUsingWilsonLoop_discrete_ky(std::size_t 
     for (std::size_t i = 1; i < kx.size() - 1; ++i)
     {
         *Uip_ptr = eigenvecs_discrete_ky(kx(i), n_ky);
-        _SVD.compute((*Ui_ptr).leftCols(_sys.n_bands).adjoint() * (*Uip_ptr).leftCols(_sys.n_bands));
+        _SVD.compute(Ui_ptr->leftCols(half_sc_bands).adjoint() * Uip_ptr->leftCols(half_sc_bands));
         W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
         std::swap(Ui_ptr, Uip_ptr);
     }
 
-    _SVD.compute(_SAES.eigenvectors().leftCols(_sys.n_bands).adjoint() * U0.leftCols(_sys.n_bands));
+    _SVD.compute(_SAES.eigenvectors().leftCols(half_sc_bands).adjoint() * U0.leftCols(half_sc_bands));
     W *= _SVD.matrixU() * _SVD.matrixV().adjoint();
 
     return std::arg(W.determinant()) / (2.0 * M_PI);

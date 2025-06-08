@@ -4,8 +4,6 @@
 #include "System2D.h"
 #include "utils.h"
 
-#include <unsupported/Eigen/KroneckerProduct>
-
 struct ToyModel : public System2D
 {
     // effective mass
@@ -19,14 +17,9 @@ struct ToyModel : public System2D
     double delta_RSO_x{};
     double delta_RSO_y{};
 
-    // for Delta
-    Hamiltonian isy = 1i * sy;
-
-    ToyModel()
+    ToyModel() : System2D()
     {
         set_default_parameters();
-        set_nonzero_indices();
-        update_HBdG_nonzero_indices();
     }
 
     void set_default_parameters() override
@@ -61,63 +54,43 @@ struct ToyModel : public System2D
         ty = 1.0 / (2.0 * m * dy * dy);
     }
 
-    void set_nonzero_indices() override;
+protected:
+    // Triplets only upper triangular part of the entire hamiltonian for onsites
+    // continues hamiltonians
+    std::vector<Triplet> Hk_triplets(double kx, double ky) const;
+    std::vector<Triplet> Delta_triplets(double kx, double ky) const;
+    std::vector<Triplet> mHmkT_triplets(double kx, double ky) const;
 
-    Hamiltonian Hk(double kx, double ky) const override;
-    Hamiltonian Delta(double kx, double ky) const override;
-    Hamiltonian Delta_Adjoint(double kx, double ky) const override;
+    // discrete in y direction
+    std::vector<Triplet> Hk_discrete_ky_onsite_triplets(double kx, double y) const;
+    std::vector<Triplet> Hk_discrete_ky_hopping_p_triplets(double kx, double y) const;
 
-    // hamiltonian elements
+    std::vector<Triplet> Delta_discrete_ky_onsite_triplets(double kx, double y) const;
+    // std::vector<Triplet> Delta_discrete_ky_hopping_p_triplets(double kx, double y) const;
 
-    // discretized in ky
-    Hamiltonian Hk_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian Hk_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian Hk_discrete_ky_hopping_m(double kx, double y) const override;
+    std::vector<Triplet> mHmkT_discrete_ky_onsite_triplets(double kx, double y) const;
+    std::vector<Triplet> mHmkT_discrete_ky_hopping_p_triplets(double kx, double y) const;
 
-    Hamiltonian Delta_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian Delta_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian Delta_discrete_ky_hopping_m(double kx, double y) const override;
+    // discrete in both x and y directions
+    std::vector<Triplet> Hk_discrete_onsite_triplets(double x, double y) const;
+    std::vector<Triplet> Hk_discrete_hopping_xp_triplets(double x, double y) const;
+    std::vector<Triplet> Hk_discrete_hopping_yp_triplets(double x, double y) const;
+    // std::vector<Triplet> Hk_discrete_hopping_pp_triplets(double x, double y) const;
+    // std::vector<Triplet> Hk_discrete_hopping_pm_triplets(double x, double y) const;
 
-    Hamiltonian Delta_Adjoint_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_ky_hopping_m(double kx, double y) const override;
+    std::vector<Triplet> Delta_discrete_onsite_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_xp_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_yp_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_pp_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_pm_triplets(double x, double y) const;
 
-    Hamiltonian mHmkT_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian mHmkT_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian mHmkT_discrete_ky_hopping_m(double kx, double y) const override;
+    std::vector<Triplet> mHmkT_discrete_onsite_triplets(double x, double y) const;
+    std::vector<Triplet> mHmkT_discrete_hopping_xp_triplets(double x, double y) const;
+    std::vector<Triplet> mHmkT_discrete_hopping_yp_triplets(double x, double y) const;
+    // std::vector<Triplet> mHmkT_discrete_hopping_pp_triplets(double x, double y) const;
+    // std::vector<Triplet> mHmkT_discrete_hopping_pm_triplets(double x, double y) const;
 
-    // discretized in kx,ky
-    Hamiltonian Hk_discrete_onsite(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_ym(double x, double y) const override;
-
-    Hamiltonian Delta_discrete_onsite(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_ym(double x, double y) const override;
-
-    Hamiltonian Delta_Adjoint_discrete_onsite(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_ym(double x, double y) const override;
-
-    Hamiltonian mHmkT_discrete_onsite(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_ym(double x, double y) const override;
-
-    Hamiltonian Hkin(double kx, double ky) const;
-    Hamiltonian Hkin(double kx) const;
-    Hamiltonian Hkin() const;
-    Hamiltonian HZeeman() const;
-    Hamiltonian HRashba(double kx, double ky) const;
-    Hamiltonian HRashba(double kx) const;
-
+private:
     double Ek(double kx, double ky) const
     {
         return 2.0 * tx * (1.0 - std::cos(kx)) + 2.0 * ty * (1.0 - std::cos(ky));
@@ -132,6 +105,25 @@ struct ToyModel : public System2D
     {
         return 2.0 * (tx + ty);
     }
+
+    Hamiltonian Hk_mat(double kx, double ky) const;
+    Hamiltonian Delta(double kx, double ky) const;
+    Hamiltonian Hk_discrete_ky_onsite(double kx, double y) const;
+    Hamiltonian Hk_discrete_ky_hopping_p(double kx, double y) const;
+    Hamiltonian mHmkT_discrete_ky_onsite(double kx, double y) const;
+    Hamiltonian mHmkT_discrete_ky_hopping_p(double kx, double y) const;
+    Hamiltonian Hk_discrete_onsite(double x, double y) const;
+    Hamiltonian Hk_discrete_hopping_xp(double x, double y) const;
+    Hamiltonian Hk_discrete_hopping_yp(double x, double y) const;
+    Hamiltonian mHmkT_discrete_onsite(double x, double y) const;
+    Hamiltonian mHmkT_discrete_hopping_xp(double x, double y) const;
+    Hamiltonian mHmkT_discrete_hopping_yp(double x, double y) const;
+    Hamiltonian Hkin(double kx, double ky) const;
+    Hamiltonian Hkin(double kx) const;
+    Hamiltonian Hkin() const;
+    Hamiltonian HZeeman() const;
+    Hamiltonian HRashba(double kx, double ky) const;
+    Hamiltonian HRashba(double kx) const;
 };
 
 #endif

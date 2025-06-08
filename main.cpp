@@ -16,50 +16,135 @@ int main()
     System2DCalculations calc(sys);
     System2DCalculationsPrinter printer(calc);
 
+    double LAOSTO_bottom_band = -2.83022409703;
+    double LAOSTO_top_band = 3.33333333333;
+
+    // sys.mu = meV2au(LAOSTO_top_band);
+
+    sys.mu = meV2au(4.0);
+    sys.Bx = T2au(1.0);
+    sys.By = T2au(1.0);
+    sys.Bz = T2au(1.0);
+
+    // std::cout << sys.HBdG_discrete(1,2).real()/meV2au(1) << std::endl; // Initialize the Hamiltonian
+
+    
+    // printer.printBandStructureSlice("data/BS_slice.dat", Eigen::VectorXd::LinSpaced(1001, -0.5, 0.5), 0);
+    // printer.printBandStructure_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(201, -0.5, 0.0), 80);
+    // printer.printBandStructure_sparse_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(501, -0.5, 0.0), 30, 2);
+
+    // printer.printProbDen_sparse_discrete("data/prob_den.dat", 200, 9, 0.0);
+
+    // for (size_t i = 1; i < 15; i++)
+    // {
+    //     /* code */
+    //     // std::cout << i << " " << calc.ChernNumberUsingWilsonLoop_discrete_ky(50, 20, 0.4, i) << std::endl;
+    // }
+
     // 2D k-space chern vs params
     {
-        sys.mu = meV2au(0.0);
-        sys.Bx = T2au(0.0);
-        sys.By = T2au(0.0);
-        sys.Bz = T2au(0.0);
+        // sys.mu = meV2au(0.0);
+        // sys.Bx = T2au(0.0);
+        // sys.By = T2au(0.0);
+        // sys.Bz = T2au(0.0);
 
-        std::size_t n_par1 = 201;
-        std::size_t n_par2 = 201;
-        
-        std::size_t n_dense = 50;
-        std::size_t n_sparse = 20;
+        // // //TOYMODEL
+        // // std::size_t n_par1 = 101;
+        // // std::size_t n_par2 = 101;
 
-        Eigen::VectorXd vec_par1 = Eigen::VectorXd::LinSpaced(n_par1, -4.0, 6.0);
-        Eigen::VectorXd vec_par2 = Eigen::VectorXd::LinSpaced(n_par2, 0.0, 5.0);
+        // // std::size_t n_dense = 20;
+        // // std::size_t n_sparse = 10;
 
-        std::ofstream output_file("data/CN.dat");
+        // // Eigen::VectorXd vec_par1 = Eigen::VectorXd::LinSpaced(n_par1, -1.0, 1.0);
+        // // Eigen::VectorXd vec_par2 = Eigen::VectorXd::LinSpaced(n_par2, -1.0, 1.0);
 
-        for (auto i = 0; i < vec_par1.size(); ++i)
-        {
-            for (auto j = 0; j < vec_par2.size(); ++j)
-            {
-                sys.mu = meV2au(vec_par1(i));
+        // //LAOSTO
+        // sys.mu = meV2au(LAOSTO_bottom_band);
+        // std::size_t n_par1 = 51;
+        // std::size_t n_par2 = 51;
 
-                // sys.Bx = T2au(vec_par2(j));
-                // sys.By = T2au(vec_par2(j));
-                sys.Bz = T2au(vec_par2(j));
+        // std::size_t n_dense = 10;
+        // std::size_t n_sparse = 5;
 
-                output_file << vec_par1(i) << " " << vec_par2(j) << " " << calc.ChernNumberUsingWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
-            }
-        }
+        // Eigen::VectorXd vec_par1 = Eigen::VectorXd::LinSpaced(n_par1, -4, 4);
+        // Eigen::VectorXd vec_par2 = Eigen::VectorXd::LinSpaced(n_par2, -1, 1);
+
+        // std::ofstream output_file("data/CN.dat");
+
+        // for (auto i = 0; i < vec_par1.size(); ++i)
+        // {
+        //     for (auto j = 0; j < vec_par2.size(); ++j)
+        //     {
+        //         // sys.mu = meV2au(vec_par1(i));
+        //         sys.Bx = T2au(vec_par1(i));
+        //         // sys.By = T2au(vec_par1(i));
+        //         // sys.Bz = T2au(vec_par1(i));
+
+        //         // sys.Bx = T2au(vec_par2(j));
+        //         // sys.By = T2au(vec_par2(j));
+        //         sys.Bz = T2au(vec_par2(j));
+
+        //         output_file << vec_par1(i) << " " << vec_par2(j) << " " << calc.ChernNumberUsingWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
+        //         // output_file << vec_par1(i) << " " << vec_par2(j) << " " << calc.ChernNumberUsingBerryCurvatureFromWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
+        //     }
+        // }
+    }
+
+    // 1D k-space chern vs params
+    {
+        // sys.mu = meV2au(0.0);
+        // sys.Bx = T2au(0.0);
+        // sys.By = T2au(0.0);
+        // sys.Bz = T2au(0.0);
+
+        // // // TOYMODEL
+        // // std::size_t n_ky_min = 1;
+        // // std::size_t n_ky_max = 251;
+
+        // // std::size_t n_par = 401;
+        // // Eigen::VectorXd vec_par = Eigen::VectorXd::LinSpaced(n_par, -2.0, 2.0);
+
+        // // std::size_t n_dense = 20;
+        // // std::size_t n_sparse = 10;
+
+        // // //LAOSTO
+        // sys.mu = meV2au(LAOSTO_top_band);
+        // std::size_t n_ky_min = 1;
+        // std::size_t n_ky_max = 30;
+
+        // std::size_t n_par = 51;
+        // Eigen::VectorXd vec_par = Eigen::VectorXd::LinSpaced(n_par, 0.0, 4.0);
+
+        // std::size_t n_dense = 10;
+        // std::size_t n_sparse = 5;
+
+        // std::ofstream output_file("data/CN1D.dat");
+
+        // for (auto n_ky = n_ky_min; n_ky <= n_ky_max; ++n_ky)
+        // {
+        //     for (auto j = 0; j < vec_par.size(); ++j)
+        //     {
+        //         sys.Bx = T2au(vec_par(j));
+        //         // sys.By = T2au(vec_par(j));
+        //         // sys.Bz = T2au(vec_par(j));
+
+        //         output_file << n_ky << " " << vec_par(j) << " " << calc.ChernNumberUsingWilsonLoop_discrete_ky(n_dense, n_sparse, 0.5, n_ky) << std::endl;
+        //         // output_file << vec_par1(i) << " " << vec_par2(j) << " " << calc.ChernNumberUsingBerryCurvatureFromWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
+        //     }
+        // }
     }
 
     // discrete hamiltonian energy vs parameters
     {
 
-        // sys.mu = meV2au(0.0);
+        // sys.mu = meV2au(4.0);
         // sys.Bx = T2au(0.0);
         // sys.By = T2au(0.0);
-        // sys.Bz = T2au(5.0);
+        // sys.Bz = T2au(0.0);
 
-        // std::size_t n_kx = 351;
+        // std::size_t n_kx = 200;
         // std::size_t n_ky = 9;
-        // std::size_t n = 201;
+        // std::size_t n = 101;
 
         // // // kręcenie polem
         // //  double start = 0.0;
@@ -78,16 +163,16 @@ int main()
         // // }
 
         // // samo pole
-        // double start = 2.0;
-        // double end = 5.0;
+        // double start = 0.0;
+        // double end = 1.0;
         // Eigen::VectorXd vec = Eigen::VectorXd::LinSpaced(n, start, end);
 
         // std::ofstream output_file("data/energy.dat");
 
         // for (auto i = 0; i < n; ++i)
         // {
-        //     // sys.Bx = T2au(vec(i));
-        //     sys.mu = meV2au(vec(i));
+        //     sys.Bz = T2au(vec(i));
+        //     // sys.mu = meV2au(vec(i));
         //     auto evals = calc.eigenvals_sparse_discrete(n_kx, n_ky, 30);
         //     std::sort(evals.data(), evals.data() + evals.size());
         //     output_file << vec(i) << " " << evals.transpose() / meV2au(1) << std::endl;
@@ -96,20 +181,17 @@ int main()
 
     // discrete system prob den
     {
-        // System2D sys(HBdG, p);
-        // sys.setHamiltonians_discrete(HBdG_discrete_onsite, HBdG_discrete_hopping_xp, HBdG_discrete_hopping_xm, HBdG_discrete_hopping_yp, HBdG_discrete_hopping_ym);
-
-        // sys._p.mu = meV2au(4.0);
-        // sys._p.Bx = T2au(0.0);
-        // sys._p.By = T2au(0.3);
-        // sys._p.Bz = T2au(1e-6);
+        // sys.mu = meV2au(4.0);
+        // sys.Bx = T2au(1.3);
+        // sys.By = T2au(0.0);
+        // sys.Bz = T2au(0.0);
 
         // std::size_t n_kx = 250;
         // std::size_t n_ky = 9;
 
         // double energy = meV2au(0.0);
 
-        // sys.printProbDen_discrete("data/prob_den.dat", n_kx, n_ky, energy);
+        // printer.printProbDen_sparse_discrete("data/prob_den.dat", n_kx, n_ky, energy);
     }
 
     // delta vs momentum

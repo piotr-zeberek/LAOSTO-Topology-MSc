@@ -22,36 +22,9 @@ struct LAOSTO : public System2D
     // Rashba spin-orbit coupling
     double delta_RSO{};
 
-    // angular momentum matrices
-    const Eigen::Matrix3cd Lx{{0, 1i, 0},
-                              {-1i, 0, 0},
-                              {0, 0, 0}};
-    const Eigen::Matrix3cd Ly{{0, 0, -1i},
-                              {0, 0, 0},
-                              {1i, 0, 0}};
-    const Eigen::Matrix3cd Lz{{0, 0, 0},
-                              {0, 0, 1i},
-                              {0, -1i, 0}};
-
-    // 3x3 complex identity matrix
-    const Eigen::Matrix3cd I3 = Eigen::Matrix3cd::Identity();
-
-    // for HZeeman
-    const Hamiltonian Lxs0 = Eigen::kroneckerProduct(Lx, s0);
-    const Hamiltonian Lys0 = Eigen::kroneckerProduct(Ly, s0);
-    const Hamiltonian Lzs0 = Eigen::kroneckerProduct(Lz, s0);
-    const Hamiltonian I3sx = Eigen::kroneckerProduct(I3, sx);
-    const Hamiltonian I3sy = Eigen::kroneckerProduct(I3, sy);
-    const Hamiltonian I3sz = Eigen::kroneckerProduct(I3, sz);
-
-    // Atomic SO matrix
-    Hamiltonian HSO_mat;
-
-    LAOSTO()
+    LAOSTO() : System2D()
     {
         set_default_parameters();
-        set_nonzero_indices();
-        update_HBdG_nonzero_indices();
 
         // Atomic SO matrix
         Hamiltonian H(n_bands, n_bands);
@@ -61,17 +34,6 @@ struct LAOSTO : public System2D
             1i * sy, -1i * sz, z;
 
         HSO_mat = H;
-
-        std::vector<ElementIndex> additional_hoppings_indices = {
-            {2, 4},
-            {4, 2},
-            {3, 5},
-            {5, 3}};
-
-        HBdG_discrete_hopping_pp_nonzero_indices = assemble_HBdG_nonzero_indices(additional_hoppings_indices, {}, {}, additional_hoppings_indices);
-        HBdG_discrete_hopping_mp_nonzero_indices = assemble_HBdG_nonzero_indices(additional_hoppings_indices, {}, {}, additional_hoppings_indices);
-        HBdG_discrete_hopping_mm_nonzero_indices = assemble_HBdG_nonzero_indices(additional_hoppings_indices, {}, {}, additional_hoppings_indices);
-        HBdG_discrete_hopping_pm_nonzero_indices = assemble_HBdG_nonzero_indices(additional_hoppings_indices, {}, {}, additional_hoppings_indices);
     }
 
     void set_default_parameters() override
@@ -99,80 +61,93 @@ struct LAOSTO : public System2D
         Bz = 0.0;
     }
 
-    void set_nonzero_indices() override;
+protected:
+    // Triplets only upper triangular part of the entire hamiltonian for onsites
+    // continues hamiltonians
+    std::vector<Triplet> Hk_triplets(double kx, double ky) const;
+    std::vector<Triplet> Delta_triplets(double kx, double ky) const;
+    std::vector<Triplet> mHmkT_triplets(double kx, double ky) const;
 
-    Hamiltonian Hk(double kx, double ky) const override;
-    Hamiltonian Delta(double kx, double ky) const override;
-    Hamiltonian Delta_Adjoint(double kx, double ky) const override;
+    // discrete in y direction
+    std::vector<Triplet> Hk_discrete_ky_onsite_triplets(double kx, double y) const;
+    std::vector<Triplet> Hk_discrete_ky_hopping_p_triplets(double kx, double y) const;
 
-    // override to include additional hoppings
-    Hamiltonian HBdG_discrete(std::size_t n_kx, std::size_t n_ky) const override;
-    std::vector<Triplet> triplets_HBdG_discrete(std::size_t n_kx, std::size_t n_ky) const override;
+    std::vector<Triplet> Delta_discrete_ky_onsite_triplets(double kx, double y) const;
+    // std::vector<Triplet> Delta_discrete_ky_hopping_p_triplets(double kx, double y) const;
 
-    Hamiltonian HBdG_discrete_hopping_pp(double x, double y) const;
-    Hamiltonian HBdG_discrete_hopping_mp(double x, double y) const;
-    Hamiltonian HBdG_discrete_hopping_mm(double x, double y) const;
-    Hamiltonian HBdG_discrete_hopping_pm(double x, double y) const;
+    std::vector<Triplet> mHmkT_discrete_ky_onsite_triplets(double kx, double y) const;
+    std::vector<Triplet> mHmkT_discrete_ky_hopping_p_triplets(double kx, double y) const;
 
-    std::vector<ElementIndex> HBdG_discrete_hopping_mm_nonzero_indices;
-    std::vector<ElementIndex> HBdG_discrete_hopping_pm_nonzero_indices;
-    std::vector<ElementIndex> HBdG_discrete_hopping_mp_nonzero_indices;
-    std::vector<ElementIndex> HBdG_discrete_hopping_pp_nonzero_indices;
+    // discrete in both x and y directions
+    std::vector<Triplet> Hk_discrete_onsite_triplets(double x, double y) const;
+    std::vector<Triplet> Hk_discrete_hopping_xp_triplets(double x, double y) const;
+    std::vector<Triplet> Hk_discrete_hopping_yp_triplets(double x, double y) const;
+    std::vector<Triplet> Hk_discrete_hopping_pp_triplets(double x, double y) const;
+    std::vector<Triplet> Hk_discrete_hopping_pm_triplets(double x, double y) const;
 
-    // hamiltonian elements
+    std::vector<Triplet> Delta_discrete_onsite_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_xp_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_yp_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_pp_triplets(double x, double y) const;
+    // std::vector<Triplet> Delta_discrete_hopping_pm_triplets(double x, double y) const;
+
+    std::vector<Triplet> mHmkT_discrete_onsite_triplets(double x, double y) const;
+    std::vector<Triplet> mHmkT_discrete_hopping_xp_triplets(double x, double y) const;
+    std::vector<Triplet> mHmkT_discrete_hopping_yp_triplets(double x, double y) const;
+    std::vector<Triplet> mHmkT_discrete_hopping_pp_triplets(double x, double y) const;
+    std::vector<Triplet> mHmkT_discrete_hopping_pm_triplets(double x, double y) const;
+
+private:
+    // Atomic SO matrix
+    Hamiltonian HSO_mat;
+
+    // angular momentum matrices
+    const Eigen::Matrix3cd Lx{{0, 1i, 0},
+                              {-1i, 0, 0},
+                              {0, 0, 0}};
+    const Eigen::Matrix3cd Ly{{0, 0, -1i},
+                              {0, 0, 0},
+                              {1i, 0, 0}};
+    const Eigen::Matrix3cd Lz{{0, 0, 0},
+                              {0, 0, 1i},
+                              {0, -1i, 0}};
+
+    // 3x3 complex identity matrix
+    const Eigen::Matrix3cd I3 = Eigen::Matrix3cd::Identity();
+
+    // for HZeeman
+    const Hamiltonian Lxs0 = Eigen::kroneckerProduct(Lx, s0);
+    const Hamiltonian Lys0 = Eigen::kroneckerProduct(Ly, s0);
+    const Hamiltonian Lzs0 = Eigen::kroneckerProduct(Lz, s0);
+    const Hamiltonian I3sx = Eigen::kroneckerProduct(I3, sx);
+    const Hamiltonian I3sy = Eigen::kroneckerProduct(I3, sy);
+    const Hamiltonian I3sz = Eigen::kroneckerProduct(I3, sz);
+
+    Hamiltonian Hk_mat(double kx, double ky) const;
+    Hamiltonian Delta(double kx, double ky) const;
 
     // discretized in ky
-    Hamiltonian Hk_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian Hk_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian Hk_discrete_ky_hopping_m(double kx, double y) const override;
+    Hamiltonian Hk_discrete_ky_onsite(double kx, double y) const;
+    Hamiltonian Hk_discrete_ky_hopping_p(double kx, double y) const;
 
-    Hamiltonian Delta_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian Delta_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian Delta_discrete_ky_hopping_m(double kx, double y) const override;
-
-    Hamiltonian Delta_Adjoint_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_ky_hopping_m(double kx, double y) const override;
-
-    Hamiltonian mHmkT_discrete_ky_onsite(double kx, double y) const override;
-    Hamiltonian mHmkT_discrete_ky_hopping_p(double kx, double y) const override;
-    Hamiltonian mHmkT_discrete_ky_hopping_m(double kx, double y) const override;
+    Hamiltonian mHmkT_discrete_ky_onsite(double kx, double y) const;
+    Hamiltonian mHmkT_discrete_ky_hopping_p(double kx, double y) const;
 
     // discretized in kx,ky
-    Hamiltonian Hk_discrete_onsite(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian Hk_discrete_hopping_ym(double x, double y) const override;
+    Hamiltonian Hk_discrete_onsite(double x, double y) const;
+    Hamiltonian Hk_discrete_hopping_xp(double x, double y) const;
+    Hamiltonian Hk_discrete_hopping_yp(double x, double y) const;
 
-    Hamiltonian Delta_discrete_onsite(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian Delta_discrete_hopping_ym(double x, double y) const override;
-
-    Hamiltonian Delta_Adjoint_discrete_onsite(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian Delta_Adjoint_discrete_hopping_ym(double x, double y) const override;
-
-    Hamiltonian mHmkT_discrete_onsite(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_xp(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_xm(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_yp(double x, double y) const override;
-    Hamiltonian mHmkT_discrete_hopping_ym(double x, double y) const override;
+    Hamiltonian mHmkT_discrete_onsite(double x, double y) const;
+    Hamiltonian mHmkT_discrete_hopping_xp(double x, double y) const;
+    Hamiltonian mHmkT_discrete_hopping_yp(double x, double y) const;
 
     // additional diagonal hoppings
     Hamiltonian Hk_discrete_hopping_pp(double x, double y) const;
-    Hamiltonian Hk_discrete_hopping_mm(double x, double y) const;
     Hamiltonian Hk_discrete_hopping_pm(double x, double y) const;
-    Hamiltonian Hk_discrete_hopping_mp(double x, double y) const;
 
     Hamiltonian mHmkT_discrete_hopping_pp(double x, double y) const;
-    Hamiltonian mHmkT_discrete_hopping_mp(double x, double y) const;
     Hamiltonian mHmkT_discrete_hopping_pm(double x, double y) const;
-    Hamiltonian mHmkT_discrete_hopping_mm(double x, double y) const;
 
     Hamiltonian Hkin(double kx, double ky) const;
     Hamiltonian Hkin(double kx) const;

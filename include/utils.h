@@ -6,6 +6,9 @@
 
 using namespace std::complex_literals;
 using Triplet = Eigen::Triplet<std::complex<double>>;
+using TripletFunc = std::function<std::vector<Triplet>(double, double)>;
+using Hamiltonian = Eigen::MatrixXcd;
+using SparseHamiltonian = Eigen::SparseMatrix<std::complex<double>>;
 
 // Pauli matrices
 const Eigen::Matrix2cd s0 = Eigen::Matrix2cd::Identity();
@@ -41,7 +44,7 @@ constexpr inline double T2au(double field)
 
 Eigen::MatrixXcd kron(const Eigen::MatrixXcd &A, const Eigen::MatrixXcd &B);
 
-Eigen::VectorXd eigenvals_sparse(const std::vector<Triplet> &triplets, std::size_t size, std::size_t n_eigs, double sigma, double tol = meV2au(1e-9));
-std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse(const std::vector<Triplet> &triplets, std::size_t size, std::size_t n_eigs, double sigma, double tol = meV2au(1e-9));
+Eigen::VectorXd eigenvals_sparse(const SparseHamiltonian& sparse_H, std::size_t n_eigs, double sigma, double tol = meV2au(1e-9));
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse(const SparseHamiltonian& sparse_H, std::size_t n_eigs, double sigma, double tol = meV2au(1e-9));
 
 #endif
