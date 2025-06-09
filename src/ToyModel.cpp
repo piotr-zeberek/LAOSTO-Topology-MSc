@@ -9,8 +9,7 @@ std::vector<Triplet> ToyModel::Delta_triplets(double kx, double ky) const
 {
     return {
         {0, 1, delta_SC},
-        {1, 0, -delta_SC}
-    };
+        {1, 0, -delta_SC}};
 }
 
 std::vector<Triplet> ToyModel::mHmkT_triplets(double kx, double ky) const
@@ -97,7 +96,7 @@ Hamiltonian ToyModel::Hk_discrete_ky_onsite(double kx, double y) const
 Hamiltonian ToyModel::Hk_discrete_ky_hopping_p(double kx, double y) const
 {
     Hamiltonian H0 = -ty * s0;
-    Hamiltonian HRSO = -1i / 2.0 * delta_RSO_y * sx;
+    Hamiltonian HRSO = 0.5 * 1i * delta_RSO_y * sx;
 
     return H0 + HRSO;
 }
@@ -110,7 +109,7 @@ Hamiltonian ToyModel::mHmkT_discrete_ky_onsite(double kx, double y) const
 Hamiltonian ToyModel::mHmkT_discrete_ky_hopping_p(double kx, double y) const
 {
     Hamiltonian H0 = -ty * s0;
-    Hamiltonian HRSO = -1i / 2.0 * delta_RSO_y * sx;
+    Hamiltonian HRSO = 0.5 * 1i * delta_RSO_y * sx;
 
     return -H0 + HRSO;
 }
@@ -123,17 +122,14 @@ Hamiltonian ToyModel::Hk_discrete_onsite(double x, double y) const
 Hamiltonian ToyModel::Hk_discrete_hopping_xp(double x, double y) const
 {
     Hamiltonian H0 = -tx * s0;
-    Hamiltonian HRSO = 1i / 2.0 * delta_RSO_x * sy;
+    Hamiltonian HRSO = -0.5 * 1i * delta_RSO_x * sy;
 
     return H0 + HRSO;
 }
 
 Hamiltonian ToyModel::Hk_discrete_hopping_yp(double x, double y) const
 {
-    Hamiltonian H0 = -ty * s0;
-    Hamiltonian HRSO = -1i / 2.0 * delta_RSO_y * sx;
-
-    return H0 + HRSO;
+    return Hk_discrete_ky_hopping_p(x, y); 
 }
 
 Hamiltonian ToyModel::mHmkT_discrete_onsite(double x, double y) const
@@ -149,9 +145,9 @@ Hamiltonian ToyModel::mHmkT_discrete_hopping_xp(double x, double y) const
 Hamiltonian ToyModel::mHmkT_discrete_hopping_yp(double x, double y) const
 {
     Hamiltonian H0 = -ty * s0;
-    Hamiltonian HRSO = -1i / 2.0 * delta_RSO_y * sx;
+    Hamiltonian HRSO = 0.5 * 1i * delta_RSO_y * sx;
 
-    return -H0 + HRSO; // no need to transpose HRSO, symmetric
+    return -H0 + HRSO;
 }
 
 Hamiltonian ToyModel::Hkin(double kx, double ky) const

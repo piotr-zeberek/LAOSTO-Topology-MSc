@@ -41,10 +41,10 @@ std::vector<Triplet> LAOSTO::Hk_discrete_ky_hopping_p_triplets(double kx, double
         {3, 5, Ek_h(kx)},
         {5, 3, Ek_h(kx)},
         // rso
-        {0, 2, 0.5 * delta_RSO},
-        {2, 0, -0.5 * delta_RSO},
-        {1, 3, 0.5 * delta_RSO},
-        {3, 1, -0.5 * delta_RSO}};
+        {0, 2, -0.5 * delta_RSO},
+        {2, 0, 0.5 * delta_RSO},
+        {1, 3, -0.5 * delta_RSO},
+        {3, 1, 0.5 * delta_RSO}};
 }
 
 std::vector<Triplet> LAOSTO::Delta_discrete_ky_onsite_triplets(double kx, double y) const
@@ -78,10 +78,10 @@ std::vector<Triplet> LAOSTO::Hk_discrete_hopping_xp_triplets(double x, double y)
         {4, 4, -th},
         {5, 5, -th},
         // rso
-        {0, 4, 0.5 * delta_RSO},
-        {4, 0, -0.5 * delta_RSO},
-        {1, 5, 0.5 * delta_RSO},
-        {5, 1, -0.5 * delta_RSO}};
+        {0, 4, -0.5 * delta_RSO},
+        {4, 0, 0.5 * delta_RSO},
+        {1, 5, -0.5 * delta_RSO},
+        {5, 1, 0.5 * delta_RSO}};
 }
 
 std::vector<Triplet> LAOSTO::Hk_discrete_hopping_yp_triplets(double x, double y) const
@@ -95,10 +95,10 @@ std::vector<Triplet> LAOSTO::Hk_discrete_hopping_yp_triplets(double x, double y)
         {4, 4, -tl},
         {5, 5, -tl},
         // rso
-        {0, 2, 0.5 * delta_RSO},
-        {2, 0, -0.5 * delta_RSO},
-        {1, 3, 0.5 * delta_RSO},
-        {3, 1, -0.5 * delta_RSO}};
+        {0, 2, -0.5 * delta_RSO},
+        {2, 0, 0.5 * delta_RSO},
+        {1, 3, -0.5 * delta_RSO},
+        {3, 1, 0.5 * delta_RSO}};
 }
 
 std::vector<Triplet> LAOSTO::Hk_discrete_hopping_pp_triplets(double x, double y) const
