@@ -52,6 +52,11 @@ Eigen::VectorXd System2DCalculations::eigenvals_discrete_ky(double kx, std::size
     return _SAES.compute(_sys.HBdG_discrete_ky(kx, n_ky), Eigen::EigenvaluesOnly).eigenvalues();
 };
 
+Eigen::VectorXd System2DCalculations::eigenvals_discrete_ky_normal(double kx, std::size_t n_ky)
+{
+    return _SAES.compute(_sys.Hk_discrete_ky(kx, n_ky), Eigen::EigenvaluesOnly).eigenvalues();
+};
+
 Eigen::VectorXd System2DCalculations::eigenvals_discrete(std::size_t n_kx, std::size_t n_ky)
 {
     return _SAES.compute(_sys.HBdG_discrete(n_kx, n_ky), Eigen::EigenvaluesOnly).eigenvalues();

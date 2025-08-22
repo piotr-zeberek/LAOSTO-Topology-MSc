@@ -24,6 +24,7 @@ public:
     Eigen::VectorXd eigenvals(double kx, double ky);
     Eigen::VectorXd eigenvals_normal(double kx, double ky);
     Eigen::VectorXd eigenvals_discrete_ky(double kx, std::size_t n_ky);
+    Eigen::VectorXd eigenvals_discrete_ky_normal(double kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_discrete(std::size_t n_kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     Eigen::VectorXd eigenvals_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
@@ -43,7 +44,7 @@ public:
     Eigen::VectorXd AbsDelta(double kx, double ky);
 
     Eigen::VectorXd AbelianBerryCurvature(double kx, double ky);
-    double BerryCurvatureFromWilsonLoop(double kx, double ky, double dk = 1e-6);
+    double BerryCurvatureFromWilsonLoop(double kx, double ky, double dk = 1e-2);
     double MatrixBerryCurvatureTrace(double kx, double ky, double dk = 1e-6);
 
     Eigen::VectorXd WilsonLoopSpectrum(std::size_t n, int axis, double k0 = 0.0);
