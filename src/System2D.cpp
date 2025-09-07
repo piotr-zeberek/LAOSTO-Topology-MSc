@@ -107,6 +107,7 @@ std::vector<Triplet> System2D::Hk_discrete_triplets(std::size_t n_kx, std::size_
 std::vector<Triplet> System2D::join_triplets_for_HBdG(
     const std::vector<Triplet> &Hk_tr,
     const std::vector<Triplet> &Delta_tr,
+    const std::vector<Triplet> &Delta_dagger_tr,
     const std::vector<Triplet> &mHmkT_tr) const
 {
     std::vector<Triplet> triplets = Hk_tr;
@@ -115,6 +116,11 @@ std::vector<Triplet> System2D::join_triplets_for_HBdG(
     for (const auto &tr : Delta_tr)
     {
         triplets.emplace_back(tr.row(), tr.col() + n_bands, tr.value());
+    }
+
+    for (const auto &tr : Delta_dagger_tr)
+    {
+        triplets.emplace_back(tr.row() + n_bands, tr.col(), tr.value());
     }
 
     for (const auto &tr : mHmkT_tr)
@@ -131,7 +137,7 @@ std::vector<Triplet> System2D::HBdG_triplets(double kx, double ky) const
     std::vector<Triplet> Delta_tr = Delta_triplets(kx, ky);
     std::vector<Triplet> mHmkT_tr = mHmkT_triplets(kx, ky);
 
-    return join_triplets_for_HBdG(Hk_tr, Delta_tr, mHmkT_tr);
+    return join_triplets_for_HBdG(Hk_tr, Delta_tr, {}, mHmkT_tr);
 }
 
 std::vector<Triplet> System2D::HBdG_discrete_ky_triplets(double kx, std::size_t n_ky) const
@@ -152,6 +158,13 @@ std::vector<Triplet> System2D::HBdG_discrete_ky_triplets(double kx, std::size_t 
         { return Delta_discrete_ky_hopping_p_triplets(kx, y); },
         kx, n_ky, submatrix_size);
 
+    std::vector<Triplet> Delta_dagger_tr = assemble_triplets_discrete_ky(
+        [this](double kx, double y)
+        { return std::vector<Triplet>{}; },
+        [this](double kx, double y)
+        { return Delta_dagger_discrete_ky_hopping_p_triplets(kx, y); },
+        kx, n_ky, submatrix_size);
+
     std::vector<Triplet> mHmkT_tr = assemble_triplets_discrete_ky(
         [this](double kx, double y)
         { return mHmkT_discrete_ky_onsite_triplets(kx, y); },
@@ -159,7 +172,7 @@ std::vector<Triplet> System2D::HBdG_discrete_ky_triplets(double kx, std::size_t 
         { return mHmkT_discrete_ky_hopping_p_triplets(kx, y); },
         kx, n_ky, submatrix_size);
 
-    return join_triplets_for_HBdG(Hk_tr, Delta_tr, mHmkT_tr);
+    return join_triplets_for_HBdG(Hk_tr, Delta_tr, Delta_dagger_tr, mHmkT_tr);
 }
 
 std::vector<Triplet> System2D::HBdG_discrete_triplets(std::size_t n_kx, std::size_t n_ky) const
@@ -191,6 +204,20 @@ std::vector<Triplet> System2D::HBdG_discrete_triplets(std::size_t n_kx, std::siz
         [this](double x, double y)
         { return Delta_discrete_hopping_pm_triplets(x, y); },
         n_kx, n_ky, submatrix_size);
+
+    std::vector<Triplet> Delta_dagger_tr = assemble_triplets_discrete(
+        [this](double x, double y)
+        { return std::vector<Triplet>{}; },
+        [this](double x, double y)
+        { return Delta_dagger_discrete_hopping_xp_triplets(x, y); },
+        [this](double x, double y)
+        { return Delta_dagger_discrete_hopping_yp_triplets(x, y); },
+        [this](double x, double y)
+        { return Delta_dagger_discrete_hopping_pp_triplets(x, y); },
+        [this](double x, double y)
+        { return Delta_dagger_discrete_hopping_pm_triplets(x, y); },
+        n_kx, n_ky, submatrix_size);
+
     std::vector<Triplet> mHmkT_tr = assemble_triplets_discrete(
         [this](double x, double y)
         { return mHmkT_discrete_onsite_triplets(x, y); },
@@ -204,7 +231,7 @@ std::vector<Triplet> System2D::HBdG_discrete_triplets(std::size_t n_kx, std::siz
         { return mHmkT_discrete_hopping_pm_triplets(x, y); },
         n_kx, n_ky, submatrix_size);
 
-    return join_triplets_for_HBdG(Hk_tr, Delta_tr, mHmkT_tr);
+    return join_triplets_for_HBdG(Hk_tr, Delta_tr, Delta_dagger_tr, mHmkT_tr);
 }
 
 void System2D::append_triplets(std::size_t row_offset, std::size_t col_offset,

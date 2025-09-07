@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <iostream>
 
 #include <pybind11/embed.h>
 #include <pybind11/eigen.h>
@@ -464,12 +465,12 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse(const SparseHamiltonia
 
 double pfaffian(const Eigen::MatrixXd &A)
 {
-
-    auto kwargs = py::dict("matrix"_a = A, "method"_a = "P", "avoid_overflow"_a = true);
+    // using pfapack C extension
+    auto kwargs = py::dict("matrix"_a = A/A.cwiseAbs().maxCoeff(), "method"_a = "P", "avoid_overflow"_a = true);
 
     return cpf(**kwargs).cast<double>();
 
-
+    // //pure python
     // if (!PFAPACK_INITIALIZED)
     // {
     //     // Initialize the pfapack module
@@ -480,4 +481,46 @@ double pfaffian(const Eigen::MatrixXd &A)
 
     // return pfapack["pfaffian"](**kwargs).cast<double>();
 
+    // // Przezdziecki
+    // Eigen::MatrixXd As = A/A.cwiseAbs().maxCoeff();
+
+    // auto gen_mu_matrix = [](const Eigen::MatrixXd &X) -> Eigen::MatrixXd
+    // {
+    //     Eigen::MatrixXd mu_matrix = Eigen::MatrixXd::Zero(X.rows(), X.cols());
+
+    //     for (int i = 0; i < X.rows(); ++i)
+    //     {
+    //         if (i != X.rows() - 1)
+    //             mu_matrix(i, i) = -X.diagonal().segment(i + 1, X.rows() - 1).sum();
+    //         for (int j = i + 1; j < X.cols(); ++j)
+    //             mu_matrix(i, j) = X(i, j);
+    //     }
+
+    //     return mu_matrix;
+    // };
+
+    // Eigen::MatrixXd B = Eigen::MatrixXd::Zero(As.rows(), As.cols());
+
+    // for (int i = 0; i < B.rows() / 2; ++i)
+    // {
+    //     B(2 * i, 2 * i + 1) = 1;
+    //     B(2 * i + 1, 2 * i) = -1;
+    // }
+
+    // // std::cout << "B = \n"
+    //         //   << B << std::endl;
+
+    // Eigen::MatrixXd F_pp_p = As;
+    // Eigen::MatrixXd F_p_p = gen_mu_matrix(F_pp_p) * B;
+
+    // for (int p = 1; p < As.rows() / 2; ++p)
+    // {
+    //     F_pp_p = gen_mu_matrix(F_p_p) * As;
+    //     F_p_p = gen_mu_matrix(F_pp_p) * B;
+    // }
+
+    // // std::cout << "F_p_p = \n"
+    // //           << F_p_p << std::endl;
+
+    // return -F_p_p(0, 0)
 }

@@ -13,6 +13,7 @@ public:
     void printBandStructureSlice(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
     void printBandStructureSlice_normal(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
     void printBandStructure_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky);
+    void printBandStructure_discrete_ky_normal(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky);
     void printBandStructure_sparse_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     
     void printProbDen_sparse_discrete(const std::string &output_filename, std::size_t nk_x, std::size_t nk_y, double E);

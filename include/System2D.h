@@ -69,6 +69,8 @@ protected:
     virtual std::vector<Triplet> Delta_discrete_ky_onsite_triplets(double kx, double y) const { return {}; }
     virtual std::vector<Triplet> Delta_discrete_ky_hopping_p_triplets(double kx, double y) const { return {}; }
 
+    virtual std::vector<Triplet> Delta_dagger_discrete_ky_hopping_p_triplets(double kx, double y) const { return {}; }
+
     virtual std::vector<Triplet> mHmkT_discrete_ky_onsite_triplets(double kx, double y) const { return {}; }
     virtual std::vector<Triplet> mHmkT_discrete_ky_hopping_p_triplets(double kx, double y) const { return {}; }
 
@@ -85,6 +87,11 @@ protected:
     virtual std::vector<Triplet> Delta_discrete_hopping_pp_triplets(double x, double y) const { return {}; }
     virtual std::vector<Triplet> Delta_discrete_hopping_pm_triplets(double x, double y) const { return {}; }
 
+    virtual std::vector<Triplet> Delta_dagger_discrete_hopping_xp_triplets(double x, double y) const { return {}; }
+    virtual std::vector<Triplet> Delta_dagger_discrete_hopping_yp_triplets(double x, double y) const { return {}; }
+    virtual std::vector<Triplet> Delta_dagger_discrete_hopping_pp_triplets(double x, double y) const { return {}; }
+    virtual std::vector<Triplet> Delta_dagger_discrete_hopping_pm_triplets(double x, double y) const { return {}; }
+
     virtual std::vector<Triplet> mHmkT_discrete_onsite_triplets(double x, double y) const { return {}; }
     virtual std::vector<Triplet> mHmkT_discrete_hopping_xp_triplets(double x, double y) const { return {}; }
     virtual std::vector<Triplet> mHmkT_discrete_hopping_yp_triplets(double x, double y) const { return {}; }
@@ -99,6 +106,7 @@ private:
     // // Triplets for the BdG Hamiltonian
     std::vector<Triplet> join_triplets_for_HBdG(const std::vector<Triplet> &Hk_tr,
                                                 const std::vector<Triplet> &Delta_tr,
+                                                const std::vector<Triplet> &Delta_dagger_tr,
                                                 const std::vector<Triplet> &mHmkT_tr) const;
     std::vector<Triplet> HBdG_triplets(double kx, double ky) const;
     std::vector<Triplet> HBdG_discrete_ky_triplets(double kx, std::size_t n_ky) const;

@@ -4,6 +4,7 @@
 
 #include "ToyModel.h"
 #include "LAOSTO.h"
+#include "LAOSTO_exts.h"
 
 #include "System2DCalculations.h"
 #include "System2DCalculationsPrinter.h"
@@ -12,6 +13,7 @@ int main(int argc, char *argv[])
 {
     // ToyModel sys;
     LAOSTO sys;
+    // LAOSTO_exts sys;
 
     System2DCalculations calc(sys);
     System2DCalculationsPrinter printer(calc);
@@ -20,28 +22,45 @@ int main(int argc, char *argv[])
     double LAOSTO_bottom_band = -2.83022409703;
     double LAOSTO_top_band = 3.33333333333;
 
+    // for (int ny = 1; ny < 31; ny++)
+    // std::cout << ny << " " << calc.eigenvals_discrete_ky_normal(0.0, ny)(0) / meV2au(1.0) << std::endl;
+    // printer.printBandStructure_discrete_ky_normal("data/LAOSTO_12C_BS.dat", Eigen::VectorXd::LinSpaced(2001, -0.3, 0.3), 12);
+
     // std::cout << std::setprecision(12) << calc.eigenvals_discrete_ky_normal(0.0, 12)/meV2au(1) << std::endl;
 
-    // sys.mu = meV2au(19.5773907141);
-    // sys.Bx = T2au(0.184);
+    // std::vector<double> mus = {-1.55963655672,
+    //                            4.68065125903,
+    //                            11.3054107315,
+    //                            19.5773907141};
+    // std::vector<double> Bxs = {0.8, 0.2, 0.3, 0.3};
 
-    // printer.printProbDen_sparse_discrete("data/prob_den.dat", 5000, 12, 0.0);
+    // for (int i = 0; i < mus.size(); i++)
+    // {
+    //     sys.mu = meV2au(mus[i]);
+    //     sys.Bx = T2au(Bxs[i]);
+    //     printer.printProbDen_sparse_discrete("data/mu" + std::to_string(i + 1) + "_30000x12C_prob_den.dat", 30000, 12, 0.0);
+    // }
+    sys.mu = meV2au(LAOSTO_top_band);
+     std::cout << sys.HBdG_discrete(1, 2).cwiseAbs()/meV2au(1) << std::endl;
 
-    // // //LAOSTO MZM nky=12, nkx=5000
-    // sys.mu = meV2au(-1.55022);
-    // sys.Bx = T2au(1.0);
+
+    // //LAOSTO MZM nky=12, nkx=5000
+    // sys.mu = meV2au(LAOSTO_bottom_band);
+    // sys.Bx = T2au(0.0);
+    // sys.By = T2au(0.0);
+    // sys.Bz = T2au(1.0);
+
+    // sys.mu = meV2au(0.0);
+    // sys.Bx = T2au(0.0);
     // sys.By = T2au(0.0);
     // sys.Bz = T2au(0.0);
-
-    // sys.mu = meV2au(11.30);
-    // sys.Bx = T2au(0.5);
-    // sys.By = T2au(0.0);
-    // sys.Bz = T2au(0.0);
-    // std::cout << sys.HBdG_discrete(1,2).real()/meV2au(1) << std::endl; // Initialize the Hamiltonian
+    // std::cout << sys.HBdG_discrete_ky(0.01,2).real()/meV2au(1) << std::endl; // Initialize the Hamiltonian
 
     // printer.printBandStructureSlice_normal("data/BS_slice.dat", Eigen::VectorXd::LinSpaced(1001, -0.5, 0.5), 0);
     // printer.printBandStructureSlice("data/BS_slice.dat", Eigen::VectorXd::LinSpaced(1001, -0.5, 0.5), 0);
-    // printer.printBandStructure_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(201, -0.5, 0.0), 80);
+    // printer.printBandStructure("data/BS.dat", Eigen::VectorXd::LinSpaced(501, -0.5, 0.5), Eigen::VectorXd::LinSpaced(501, -0.5, 0.5));
+    // printer.printBandStructure_sparse_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(101, -0.02, 0.0), 1000, 4);
+
     // printer.printBandStructure_sparse_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(201, -0.2, 0.2), 200, 30);
 
     // printer.printBerryCurvatureFromWilsonLoop("data/BC.dat", Eigen::VectorXd::LinSpaced(201, -0.5, 0.5), Eigen::VectorXd::LinSpaced(201, -0.5, 0.5));
@@ -54,42 +73,294 @@ int main(int argc, char *argv[])
     //     // std::cout << i << " " << calc.ChernNumberUsingWilsonLoop_discrete_ky(50, 20, 0.4, i) << std::endl;
     // }
 
+    // 2D k-space Z2 from Pfaffian vs 2 params - CLI arguments
+    // Z2 init_mu init_Bx init_By init_Bz kind_par1 n_par1 min_par1 max_par1 kind_par2 n_par2 min_par2 max_par2 output_filename
+    // Parameters:
+    // 0: program name
+    // 1: init_mu
+    // 2: init_Bx
+    // 3: init_By
+    // 4: init_Bz
+    // 5: kind_par1 (0 - mu, 1 - Bx, 2 - By, 3 - Bz)
+    // 6: n_par1
+    // 7: min_par1
+    // 8: max_par1
+    // 9: kind_par2 (0 - mu, 1 - Bx, 2 - By, 3 - Bz)
+    // 10: n_par2
+    // 11: min_par2
+    // 12: max_par2
+    // 13: output_filename
+    {
+        // Eigen::MatrixXd I_n_bands = Eigen::MatrixXd::Identity(sys.n_bands, sys.n_bands);
+        // Eigen::MatrixXcd U(2 * sys.n_bands, 2 * sys.n_bands);
+
+        // U << I_n_bands, I_n_bands,
+        //     -1i * I_n_bands, 1i * I_n_bands;
+
+        // if (argc < 14)
+        // {
+        //     std::cerr << "Usage: " << argv[0]
+        //               << " init_mu init_Bx init_By init_Bz kind_par1 n_par1 min_par1 max_par1 kind_par2 n_par2 min_par2 max_par2 output_filename"
+        //               << std::endl;
+        //     return 1;
+        // }
+        // sys.mu = meV2au(std::stod(argv[1]));
+        // sys.Bx = T2au(std::stod(argv[2]));
+        // sys.By = T2au(std::stod(argv[3]));
+        // sys.Bz = T2au(std::stod(argv[4]));
+
+        // std::size_t kind_par1 = std::stoul(argv[5]);
+        // std::size_t n_par1 = std::stoul(argv[6]);
+        // double min_par1 = std::stod(argv[7]);
+        // double max_par1 = std::stod(argv[8]);
+
+        // std::size_t kind_par2 = std::stoul(argv[9]);
+        // std::size_t n_par2 = std::stoul(argv[10]);
+        // double min_par2 = std::stod(argv[11]);
+        // double max_par2 = std::stod(argv[12]);
+
+        // std::string output_filename = argv[13];
+
+        // Eigen::VectorXd vec_par1 = Eigen::VectorXd::LinSpaced(n_par1, min_par1, max_par1);
+        // Eigen::VectorXd vec_par2 = Eigen::VectorXd::LinSpaced(n_par2, min_par2, max_par2);
+
+        // std::ofstream output_file(output_filename);
+
+        // for (auto i = 0; i < n_par1; ++i)
+        // {
+        //     for (auto j = 0; j < n_par2; ++j)
+        //     {
+        //         switch (kind_par1)
+        //         {
+        //         case 0: // mu
+        //             sys.mu = meV2au(vec_par1(i));
+        //             break;
+        //         case 1: // Bx
+        //             sys.Bx = T2au(vec_par1(i));
+        //             break;
+        //         case 2: // By
+        //             sys.By = T2au(vec_par1(i));
+        //             break;
+        //         case 3: // Bz
+        //             sys.Bz = T2au(vec_par1(i));
+        //             break;
+        //         default:
+        //             std::cerr << "Invalid kind_par1: " << kind_par1 << std::endl;
+        //             return 1;
+        //         }
+
+        //         switch (kind_par2)
+        //         {
+        //         case 0: // mu
+        //             sys.mu = meV2au(vec_par2(j));
+        //             break;
+        //         case 1: // Bx
+        //             sys.Bx = T2au(vec_par2(j));
+        //             break;
+        //         case 2: // By
+        //             sys.By = T2au(vec_par2(j));
+        //             break;
+        //         case 3: // Bz
+        //             sys.Bz = T2au(vec_par2(j));
+        //             break;
+        //         default:
+        //             std::cerr << "Invalid kind_par2: " << kind_par2 << std::endl;
+        //             return 1;
+        //         }
+
+        //         Eigen::MatrixXcd H1 = sys.HBdG(0.0, 0.0);
+        //         Eigen::MatrixXcd H2 = sys.HBdG(0.0, M_PI);
+        //         Eigen::MatrixXcd H3 = sys.HBdG(M_PI, M_PI);
+        //         Eigen::MatrixXcd H4 = sys.HBdG(M_PI, 0.0);
+
+        //         Eigen::MatrixXd A1 = (U * H1 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A2 = (U * H2 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A3 = (U * H3 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A4 = (U * H4 * U.adjoint()).imag();
+
+        //         double pf1 = pfaffian(A1);
+        //         double pf2 = pfaffian(A2);
+        //         double pf3 = pfaffian(A3);
+        //         double pf4 = pfaffian(A4);
+
+        //         auto Z2 = [](double pfaffian_product) -> double
+        //         { return (pfaffian_product > 0.0 ? 1.0 : -1.0); };
+
+        //         output_file << vec_par1(i) << " "
+        //                     << vec_par2(j) << " "
+        //                     << Z2(pf1 * pf2 * pf3 * pf4) << " "
+        //                     << Z2(pf1 * pf2) << " "
+        //                     << Z2(pf2 * pf3) << " "
+        //                     << Z2(pf3 * pf4) << " "
+        //                     << Z2(pf4 * pf1) << "\n";
+        //     }
+        // }
+    }
+
+    // 1D k-space Z2 from Pfaffian vs 2 params - CLI arguments
+    // Z2 init_mu init_Bx init_By init_Bz kind_par1 n_par1 min_par1 max_par1 kind_par2 n_par2 min_par2 max_par2 n_ky output_filename
+    // Parameters:
+    // 0: program name
+    // 1: init_mu
+    // 2: init_Bx
+    // 3: init_By
+    // 4: init_Bz
+    // 5: kind_par1 (0 - mu, 1 - Bx, 2 - By, 3 - Bz)
+    // 6: n_par1
+    // 7: min_par1
+    // 8: max_par1
+    // 9: kind_par2 (0 - mu, 1 - Bx, 2 - By, 3 - Bz)
+    // 10: n_par2
+    // 11: min_par2
+    // 12: max_par2
+    // 13: n_ky
+    // 14: output_filename
+    {
+        // if (argc < 15)
+        // {
+        //     std::cerr << "Usage: " << argv[0]
+        //               << " init_mu init_Bx init_By init_Bz kind_par1 n_par1 min_par1 max_par1 kind_par2 n_par2 min_par2 max_par2 n_ky output_filename"
+        //               << std::endl;
+        //     return 1;
+        // }
+        // sys.mu = meV2au(std::stod(argv[1]));
+        // sys.Bx = T2au(std::stod(argv[2]));
+        // sys.By = T2au(std::stod(argv[3]));
+        // sys.Bz = T2au(std::stod(argv[4]));
+
+        // std::size_t kind_par1 = std::stoul(argv[5]);
+        // std::size_t n_par1 = std::stoul(argv[6]);
+        // double min_par1 = std::stod(argv[7]);
+        // double max_par1 = std::stod(argv[8]);
+
+        // std::size_t kind_par2 = std::stoul(argv[9]);
+        // std::size_t n_par2 = std::stoul(argv[10]);
+        // double min_par2 = std::stod(argv[11]);
+        // double max_par2 = std::stod(argv[12]);
+
+        // std::size_t n_ky = std::stoul(argv[13]);
+
+        // std::string output_filename = argv[14];
+
+        // Eigen::MatrixXd I_n_bands = Eigen::MatrixXd::Identity(sys.n_bands, sys.n_bands);
+        // Eigen::MatrixXcd U_single(2 * sys.n_bands, 2 * sys.n_bands);
+
+        // U_single << I_n_bands, I_n_bands,
+        //     -1i * I_n_bands, 1i * I_n_bands;
+
+        // Eigen::MatrixXcd U = Eigen::kroneckerProduct(Eigen::MatrixXcd::Identity(n_ky, n_ky), U_single).eval();
+
+        // Eigen::VectorXd vec_par1 = Eigen::VectorXd::LinSpaced(n_par1, min_par1, max_par1);
+        // Eigen::VectorXd vec_par2 = Eigen::VectorXd::LinSpaced(n_par2, min_par2, max_par2);
+
+        // std::ofstream output_file(output_filename);
+
+        // for (auto i = 0; i < n_par1; ++i)
+        // {
+        //     for (auto j = 0; j < n_par2; ++j)
+        //     {
+        //         switch (kind_par1)
+        //         {
+        //         case 0: // mu
+        //             sys.mu = meV2au(vec_par1(i));
+        //             break;
+        //         case 1: // Bx
+        //             sys.Bx = T2au(vec_par1(i));
+        //             break;
+        //         case 2: // By
+        //             sys.By = T2au(vec_par1(i));
+        //             break;
+        //         case 3: // Bz
+        //             sys.Bz = T2au(vec_par1(i));
+        //             break;
+        //         default:
+        //             std::cerr << "Invalid kind_par1: " << kind_par1 << std::endl;
+        //             return 1;
+        //         }
+
+        //         switch (kind_par2)
+        //         {
+        //         case 0: // mu
+        //             sys.mu = meV2au(vec_par2(j));
+        //             break;
+        //         case 1: // Bx
+        //             sys.Bx = T2au(vec_par2(j));
+        //             break;
+        //         case 2: // By
+        //             sys.By = T2au(vec_par2(j));
+        //             break;
+        //         case 3: // Bz
+        //             sys.Bz = T2au(vec_par2(j));
+        //             break;
+        //         default:
+        //             std::cerr << "Invalid kind_par2: " << kind_par2 << std::endl;
+        //             return 1;
+        //         }
+
+        //         Eigen::MatrixXcd H1 = sys.HBdG_discrete_ky(0.0, n_ky);
+        //         Eigen::MatrixXcd H2 = sys.HBdG_discrete_ky(M_PI, n_ky);
+
+        //         Eigen::MatrixXd A1 = (U * H1 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A2 = (U * H2 * U.adjoint()).imag();
+
+        //         double pf1 = pfaffian(A1);
+        //         double pf2 = pfaffian(A2);
+
+        //         auto Z2 = [](double pfaffian_product) -> double
+        //         { return (pfaffian_product > 0.0 ? 1.0 : -1.0); };
+
+        //         output_file << vec_par1(i) << " "
+        //                     << vec_par2(j) << " "
+        //                     << Z2(pf1 * pf2) << "\n";
+        //     }
+        // }
+    }
+
     // Z2 Pfaffian testing - 2D case
     {
-        Eigen::MatrixXd I_n_bands = Eigen::MatrixXd::Identity(sys.n_bands, sys.n_bands);
-        Eigen::MatrixXcd U(2 * sys.n_bands, 2 * sys.n_bands);
+        // Eigen::MatrixXd I_n_bands = Eigen::MatrixXd::Identity(sys.n_bands, sys.n_bands);
+        // Eigen::MatrixXcd U(2 * sys.n_bands, 2 * sys.n_bands);
 
-        U << I_n_bands, I_n_bands,
-            -1i * I_n_bands, 1i * I_n_bands;
+        // U << I_n_bands, I_n_bands,
+        //     -1i * I_n_bands, 1i * I_n_bands;
 
-        for (auto mu : Eigen::VectorXd::LinSpaced(101, 3, 4))
-        {
+        // for (auto mu : Eigen::VectorXd::LinSpaced(101, -1, 1))
+        // {
 
-            for (auto Bz : Eigen::VectorXd::LinSpaced(101, -2, 2))
-            {
-                sys.mu = meV2au(mu);
-                sys.Bx = T2au(0.0);
-                sys.By = T2au(0.0);
-                sys.Bz = T2au(Bz);
+        //     for (auto Bz : Eigen::VectorXd::LinSpaced(101, -1, 1))
+        //     {
+        //         sys.mu = meV2au(mu);
+        //         sys.Bx = T2au(0.0);
+        //         sys.By = T2au(0.0);
+        //         sys.Bz = T2au(Bz);
 
-                Eigen::MatrixXcd H1 = sys.HBdG(0.0, 0.0);
-                Eigen::MatrixXcd H2 = sys.HBdG(M_PI, 0.0);
-                Eigen::MatrixXcd H3 = sys.HBdG(0.0, M_PI);
-                Eigen::MatrixXcd H4 = sys.HBdG(M_PI, M_PI);
+        //         Eigen::MatrixXcd H1 = sys.HBdG(0.0, 0.0);
+        //         Eigen::MatrixXcd H2 = sys.HBdG(M_PI, 0.0);
+        //         Eigen::MatrixXcd H3 = sys.HBdG(0.0, M_PI);
+        //         Eigen::MatrixXcd H4 = sys.HBdG(M_PI, M_PI);
 
-                Eigen::MatrixXd A1 = (U * H1 * U.adjoint()).imag();
-                Eigen::MatrixXd A2 = (U * H2 * U.adjoint()).imag();
-                Eigen::MatrixXd A3 = (U * H3 * U.adjoint()).imag();
-                Eigen::MatrixXd A4 = (U * H4 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A1 = (U * H1 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A2 = (U * H2 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A3 = (U * H3 * U.adjoint()).imag();
+        //         Eigen::MatrixXd A4 = (U * H4 * U.adjoint()).imag();
 
-                double pf1 = pfaffian(A1);
-                double pf2 = pfaffian(A2);
-                double pf3 = pfaffian(A3);
-                double pf4 = pfaffian(A4);
+        //         double pf1 = pfaffian(A1);
+        //         double pf2 = pfaffian(A2);
+        //         double pf3 = pfaffian(A3);
+        //         double pf4 = pfaffian(A4);
 
-                std::cout << mu << " " << Bz << " " << 0.5 - 0.5 * (pf1 * pf2 * pf3 * pf4 > 0.0 ? 1.0 : -1.0) << std::endl;
-            }
-        }
+        //         auto Z2 = [](double pfaffian_product) -> double
+        //         { return (pfaffian_product > 0.0 ? 1.0 : -1.0); };
+
+        //         std::cout << mu << " "
+        //                   << Bz << " "
+        //                   << Z2(pf1 * pf2 * pf3 * pf4) << " "
+        //                   << Z2(pf1 * pf2) << " "
+        //                   << Z2(pf2 * pf3) << " "
+        //                   << Z2(pf3 * pf4) << " "
+        //                   << Z2(pf4 * pf1) << "\n";
+        //     }
+        // }
     }
 
     // Z2 Pfaffian testing - 1D case
@@ -100,16 +371,16 @@ int main(int argc, char *argv[])
         // U_single << I_n_bands, I_n_bands,
         //     -1i * I_n_bands, 1i * I_n_bands;
 
-        // std::size_t n_ky = 12;
+        // std::size_t n_ky = 80;
         // Eigen::MatrixXcd U = Eigen::kroneckerProduct(Eigen::MatrixXcd::Identity(n_ky, n_ky), U_single).eval();
 
-        // for (auto mu : Eigen::VectorXd::LinSpaced(51, 4.4, 5.0))
+        // for (auto mu : Eigen::VectorXd::LinSpaced(1, 0, 0))
         // {
 
-        //     for (auto Bx : Eigen::VectorXd::LinSpaced(51, -2, 2))
+        //     for (auto B : Eigen::VectorXd::LinSpaced(401, -2, 2))
         //     {
         //         sys.mu = meV2au(mu);
-        //         sys.Bx = T2au(Bx);
+        //         sys.Bx = T2au(B);
         //         sys.By = T2au(0.0);
         //         sys.Bz = T2au(0.0);
 
@@ -133,7 +404,7 @@ int main(int argc, char *argv[])
         //         // std::cout << "det2 = " << det2 << std::endl;
         //         // std::cout << "|det2-pf2^2| = " << std::abs(pf2 * pf2 - det2) << std::endl;
 
-        //         std::cout << mu << " " << Bx << " " << 0.5 - 0.5 * (pf1 * pf2 > 0.0 ? 1.0 : -1.0) << "\n";
+        //         std::cout << mu << " " << B << " " << (pf1 > 0.0 ? 1.0 : -1.0) * (pf2 > 0.0 ? 1.0 : -1.0) << "\n";
         //     }
         // }
     }
@@ -158,8 +429,8 @@ int main(int argc, char *argv[])
         // //LAOSTO
         // // sys.mu = meV2au(LAOSTO_top_band);
 
-        // std::size_t n_par1 = 201;
-        // std::size_t n_par2 = 201;
+        // std::size_t n_par1 = 101;
+        // std::size_t n_par2 = 101;
 
         // std::size_t n_dense = 16;
         // std::size_t n_sparse = 8;
@@ -179,8 +450,8 @@ int main(int argc, char *argv[])
         //         // sys.Bz = T2au(vec_par1(i));
 
         //         // sys.Bx = T2au(vec_par2(j));
-        //         sys.By = T2au(vec_par2(j));
-        //         // sys.Bz = T2au(vec_par2(j));
+        //         // sys.By = T2au(vec_par2(j));
+        //         sys.Bz = T2au(vec_par2(j));
 
         //         output_file << vec_par1(i) << " " << vec_par2(j) << " " << calc.ChernNumberUsingWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
         //         // output_file << vec_par1(i) << " " << vec_par2(j) << " " << calc.ChernNumberUsingBerryCurvatureFromWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
@@ -190,26 +461,26 @@ int main(int argc, char *argv[])
 
     // 2D k-space chern vs single parameter
     {
-        // sys.mu = meV2au(0.0);
+        // sys.mu = meV2au(LAOSTO_bottom_band);
         // sys.Bx = T2au(0.0);
         // sys.By = T2au(0.0);
-        // sys.Bz = T2au(5.0);
+        // sys.Bz = T2au(0.0);
 
         // std::size_t n_par = 501;
 
         // std::size_t n_dense = 16;
         // std::size_t n_sparse = 8;
 
-        // Eigen::VectorXd vec_par = Eigen::VectorXd::LinSpaced(n_par, -55, -45);
+        // Eigen::VectorXd vec_par = Eigen::VectorXd::LinSpaced(n_par, -5, 5);
 
         // std::ofstream output_file("data/CN_single_param.dat");
 
         // for (auto i = 0; i < vec_par.size(); ++i)
         // {
-        //         sys.mu = meV2au(vec_par(i));
+        //         // sys.mu = meV2au(vec_par(i));
         //         // sys.Bx = T2au(vec_par(i));
         //         // sys.By = T2au(vec_par(i));
-        //         // sys.Bz = T2au(vec_par(i));
+        //         sys.Bz = T2au(vec_par(i));
 
         //         output_file << vec_par(i) << " " << calc.ChernNumberUsingWilsonLoop(n_dense, n_sparse, 0.5) << std::endl;
         // }
@@ -343,8 +614,7 @@ int main(int argc, char *argv[])
 
     // discrete hamiltonian energy vs parameters
     {
-
-        // sys.mu = meV2au(9.53);
+        // sys.mu = meV2au(-1.55);
         // sys.Bx = T2au(0.0);
         // sys.By = T2au(0.0);
         // sys.Bz = T2au(0.0);
@@ -381,7 +651,7 @@ int main(int argc, char *argv[])
         //     sys.Bx = T2au(vec(i));
         //     // sys.Bz = T2au(vec(i));
 
-        //     auto evals = calc.eigenvals_sparse_discrete(n_kx, n_ky, 80);
+        //     auto evals = calc.eigenvals_sparse_discrete(n_kx, n_ky, 10);
         //     output_file << vec(i) << " " << evals.transpose() / meV2au(1) << std::endl;
         // }
     }
@@ -403,31 +673,27 @@ int main(int argc, char *argv[])
 
     // delta vs momentum
     {
-        // System2D sys(HBdG, p);
-
-        // sys._p.mu = meV2au(0.0); // doesnt matter for abs delta
-        // sys._p.Bx = T2au(0.0);
-        // sys._p.By = T2au(0.0);
-        // sys._p.Bz = T2au(0.2);
+        // sys.mu = meV2au(0.0); // doesnt matter for abs delta
+        // sys.Bx = T2au(0.0);
+        // sys.By = T2au(0.0);
+        // sys.Bz = T2au(1.0);
 
         // std::size_t n_k = 201;
-        // double k_max = 0.3;
+        // double k_max = 0.05;
 
         // Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(n_k, -k_max, k_max);
         // Eigen::VectorXd ky_vec = Eigen::VectorXd::LinSpaced(n_k, -k_max, k_max);
 
-        // // sys.printAbsDelta("data/abs_delta.dat", kx_vec, ky_vec);
-        // sys.printDeltaFromUnitaryTransformation("data/delta.dat", "data/DT.dat", kx_vec, ky_vec);
+        // printer.printAbsDelta("data/abs_delta.dat", kx_vec, ky_vec);
+        // // sys.printDeltaFromUnitaryTransformation("data/delta.dat", "data/DT.dat", kx_vec, ky_vec);
     }
 
     // abs delta at given k vs Bz
     {
-        // System2D sys(HBdG, p);
-
-        // sys._p.mu = meV2au(0.0); // doesnt matter
-        // sys._p.Bx = T2au(0.0);
-        // sys._p.By = T2au(0.0);
-        // sys._p.Bz = T2au(0.0);
+        // sys.mu = meV2au(0.0); // doesnt matter
+        // sys.Bx = T2au(0.0);
+        // sys.By = T2au(0.0);
+        // sys.Bz = T2au(0.0);
 
         // Point2D k{0.0, 0.0};
         // // Point2D k{M_PI, 0.0};
@@ -444,8 +710,8 @@ int main(int argc, char *argv[])
 
         // for (auto B : B_vec)
         // {
-        //     sys._p.By = T2au(B);
-        //     output_file << B << " " << sys.calcAbsDelta(k).transpose() / meV2au(1) << std::endl;
+        //     sys.Bz = T2au(B);
+        //     output_file << B << " " << calc.AbsDelta(k.x(), k.y()).transpose() / meV2au(1) << std::endl;
         // }
     }
 
@@ -523,12 +789,43 @@ int main(int argc, char *argv[])
 
     // wilson loop spectrum
     {
-        // sys.mu = meV2au(0);
+        // sys.mu = meV2au(LAOSTO_low_band);
+
         // sys.Bx = T2au(0.0);
         // sys.By = T2au(0.0);
-        // sys.Bz = T2au(-1.0);
+        // sys.Bz = T2au(1.0);
 
-        // printer.printWilsonLoopSpectrum("data/WL.dat", 101, 2001, 0.4);
+        // printer.printWilsonLoopSpectrum("data/WL.dat", 201, 4001, 0.04);
+    }
+
+    // 1D prob_den - two stastes
+    {
+        // sys.mu = meV2au(LAOSTO_top_band);
+        // sys.Bx = T2au(0.0);
+        // sys.By = T2au(0.0);
+        // sys.Bz = T2au(1.0);
+
+        // std::size_t n_ky = 50000;
+
+        // double energy = meV2au(0.0);
+
+        // double kx = 0.001;
+
+        // std::string filename = "data/prob_den_1D.dat";
+        // std::ofstream output_file(filename);
+
+        // auto [evals, evecs] = calc.eigen_sparse_discrete_ky(kx, n_ky, 2, energy);
+        // if (evals(0) > evals(1))
+        // {
+        //     evals.reverseInPlace();
+        //     evecs.col(0).swap(evecs.col(1));
+        // }
+        // auto prob_den_orbitals = evecs.cwiseAbs2();
+        // output_file << "# Eigenvals (meV): " << evals.transpose() / meV2au(1) << " kx = " << kx << " n_ky = " << n_ky << std::endl;
+        // for (auto j = 0; j < n_ky; ++j)
+        // {
+        //     output_file << j << " " << prob_den_orbitals.block(j * 2 * sys.n_bands, 0, 2 * sys.n_bands, 2).colwise().sum() << std::endl;
+        // }
     }
 
     return 0;

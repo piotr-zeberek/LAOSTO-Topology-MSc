@@ -65,6 +65,18 @@ void System2DCalculationsPrinter::printBandStructure_discrete_ky(const std::stri
     }
 }
 
+void System2DCalculationsPrinter::printBandStructure_discrete_ky_normal(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto kx : kx_vec)
+    {
+        auto evals = _calc.eigenvals_discrete_ky_normal(kx, n_ky);
+
+        output_file << kx << " " << evals.transpose() / meV2au(1.0) << std::endl;
+    }
+}
+
 void System2DCalculationsPrinter::printBandStructure_sparse_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
     std::ofstream output_file(output_filename);
