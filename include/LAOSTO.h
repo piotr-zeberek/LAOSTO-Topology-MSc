@@ -97,7 +97,7 @@ protected:
     std::vector<Triplet> mHmkT_discrete_hopping_pp_triplets(double x, double y) const;
     std::vector<Triplet> mHmkT_discrete_hopping_pm_triplets(double x, double y) const;
 
-private:
+public:
     // Atomic SO matrix
     Hamiltonian HSO_mat;
 

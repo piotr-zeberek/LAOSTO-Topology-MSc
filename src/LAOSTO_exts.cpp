@@ -263,6 +263,7 @@ Hamiltonian LAOSTO_exts::HAtomicSO() const
 Hamiltonian LAOSTO_exts::HRashba(double kx, double ky) const
 {
     Eigen::Matrix3cd rso;
+    rso.setZero();
 
     rso(0, 1) = 1i * std::sin(ky);
     rso(0, 2) = 1i * std::sin(kx);
@@ -276,6 +277,7 @@ Hamiltonian LAOSTO_exts::HRashba(double kx, double ky) const
 Hamiltonian LAOSTO_exts::HRashba(double kx) const
 {
     Eigen::Matrix3cd rso;
+    rso.setZero();
 
     rso(0, 2) = 1i * std::sin(kx);
     rso(2, 0) = -1i * std::sin(kx);

@@ -12,8 +12,8 @@
 int main(int argc, char *argv[])
 {
     // ToyModel sys;
-    LAOSTO sys;
-    // LAOSTO_exts sys;
+    // LAOSTO sys;
+    LAOSTO_exts sys;
 
     System2DCalculations calc(sys);
     System2DCalculationsPrinter printer(calc);
@@ -22,56 +22,13 @@ int main(int argc, char *argv[])
     double LAOSTO_bottom_band = -2.83022409703;
     double LAOSTO_top_band = 3.33333333333;
 
-    // for (int ny = 1; ny < 31; ny++)
-    // std::cout << ny << " " << calc.eigenvals_discrete_ky_normal(0.0, ny)(0) / meV2au(1.0) << std::endl;
-    // printer.printBandStructure_discrete_ky_normal("data/LAOSTO_12C_BS.dat", Eigen::VectorXd::LinSpaced(2001, -0.3, 0.3), 12);
+    sys.mu = meV2au(LAOSTO_bottom_band);
+    sys.Bx = T2au(0.0);
+    sys.By = T2au(0.0);
+    sys.Bz = T2au(1);
 
-    // std::cout << std::setprecision(12) << calc.eigenvals_discrete_ky_normal(0.0, 12)/meV2au(1) << std::endl;
+    printer.printBandStructureSlice_orbital_type("data/BS_slice_orbital.dat", Eigen::VectorXd::LinSpaced(2001, -0.1, 0.1), 0);
 
-    // std::vector<double> mus = {-1.55963655672,
-    //                            4.68065125903,
-    //                            11.3054107315,
-    //                            19.5773907141};
-    // std::vector<double> Bxs = {0.8, 0.2, 0.3, 0.3};
-
-    // for (int i = 0; i < mus.size(); i++)
-    // {
-    //     sys.mu = meV2au(mus[i]);
-    //     sys.Bx = T2au(Bxs[i]);
-    //     printer.printProbDen_sparse_discrete("data/mu" + std::to_string(i + 1) + "_30000x12C_prob_den.dat", 30000, 12, 0.0);
-    // }
-    sys.mu = meV2au(LAOSTO_top_band);
-     std::cout << sys.HBdG_discrete(1, 2).cwiseAbs()/meV2au(1) << std::endl;
-
-
-    // //LAOSTO MZM nky=12, nkx=5000
-    // sys.mu = meV2au(LAOSTO_bottom_band);
-    // sys.Bx = T2au(0.0);
-    // sys.By = T2au(0.0);
-    // sys.Bz = T2au(1.0);
-
-    // sys.mu = meV2au(0.0);
-    // sys.Bx = T2au(0.0);
-    // sys.By = T2au(0.0);
-    // sys.Bz = T2au(0.0);
-    // std::cout << sys.HBdG_discrete_ky(0.01,2).real()/meV2au(1) << std::endl; // Initialize the Hamiltonian
-
-    // printer.printBandStructureSlice_normal("data/BS_slice.dat", Eigen::VectorXd::LinSpaced(1001, -0.5, 0.5), 0);
-    // printer.printBandStructureSlice("data/BS_slice.dat", Eigen::VectorXd::LinSpaced(1001, -0.5, 0.5), 0);
-    // printer.printBandStructure("data/BS.dat", Eigen::VectorXd::LinSpaced(501, -0.5, 0.5), Eigen::VectorXd::LinSpaced(501, -0.5, 0.5));
-    // printer.printBandStructure_sparse_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(101, -0.02, 0.0), 1000, 4);
-
-    // printer.printBandStructure_sparse_discrete_ky("data/BS.dat", Eigen::VectorXd::LinSpaced(201, -0.2, 0.2), 200, 30);
-
-    // printer.printBerryCurvatureFromWilsonLoop("data/BC.dat", Eigen::VectorXd::LinSpaced(201, -0.5, 0.5), Eigen::VectorXd::LinSpaced(201, -0.5, 0.5));
-
-    // printer.printProbDen_sparse_discrete("data/prob_den.dat", 5000, 12, 0.0);
-
-    // for (size_t i = 1; i < 15; i++)
-    // {
-    //     /* code */
-    //     // std::cout << i << " " << calc.ChernNumberUsingWilsonLoop_discrete_ky(50, 20, 0.4, i) << std::endl;
-    // }
 
     // 2D k-space Z2 from Pfaffian vs 2 params - CLI arguments
     // Z2 init_mu init_Bx init_By init_Bz kind_par1 n_par1 min_par1 max_par1 kind_par2 n_par2 min_par2 max_par2 output_filename
@@ -614,14 +571,14 @@ int main(int argc, char *argv[])
 
     // discrete hamiltonian energy vs parameters
     {
-        // sys.mu = meV2au(-1.55);
+        // sys.mu = meV2au(4.68);
         // sys.Bx = T2au(0.0);
         // sys.By = T2au(0.0);
         // sys.Bz = T2au(0.0);
 
-        // std::size_t n_kx = 500;
+        // std::size_t n_kx = 5000;
         // std::size_t n_ky = 12;
-        // std::size_t n = 101;
+        // std::size_t n = 61;
 
         // // // kręcenie polem
         // //  double start = 0.0;
@@ -640,7 +597,7 @@ int main(int argc, char *argv[])
         // // }
 
         // double start = 0;
-        // double end = 2;
+        // double end = 1.5;
         // Eigen::VectorXd vec = Eigen::VectorXd::LinSpaced(n, start, end);
 
         // std::ofstream output_file("data/energy.dat");
@@ -651,7 +608,7 @@ int main(int argc, char *argv[])
         //     sys.Bx = T2au(vec(i));
         //     // sys.Bz = T2au(vec(i));
 
-        //     auto evals = calc.eigenvals_sparse_discrete(n_kx, n_ky, 10);
+        //     auto evals = calc.eigenvals_sparse_discrete(n_kx, n_ky, 4);
         //     output_file << vec(i) << " " << evals.transpose() / meV2au(1) << std::endl;
         // }
     }
@@ -659,12 +616,14 @@ int main(int argc, char *argv[])
     // discrete system prob den
     {
         // sys.mu = meV2au(4.0);
+
         // sys.Bx = T2au(1.3);
+
         // sys.By = T2au(0.0);
         // sys.Bz = T2au(0.0);
 
-        // std::size_t n_kx = 250;
-        // std::size_t n_ky = 9;
+        // std::size_t n_kx = 10000;
+        // std::size_t n_ky = 12;
 
         // double energy = meV2au(0.0);
 
@@ -800,21 +759,30 @@ int main(int argc, char *argv[])
 
     // 1D prob_den - two stastes
     {
-        // sys.mu = meV2au(LAOSTO_top_band);
+        // sys.mu = meV2au(LAOSTO_bottom_band);
         // sys.Bx = T2au(0.0);
         // sys.By = T2au(0.0);
         // sys.Bz = T2au(1.0);
 
-        // std::size_t n_ky = 50000;
+        // std::size_t n_ky = 1000;
+        // // std::size_t n_ky = 5000;
+        // // std::size_t n_ky = 10000;
+        // // std::size_t n_ky = 20000;
 
         // double energy = meV2au(0.0);
 
-        // double kx = 0.001;
+        // double kx = 0.005;
 
-        // std::string filename = "data/prob_den_1D.dat";
+        // // std::string filename = "data/" + std::to_string(n_ky) + "C_low_prob_den.dat";
+        // std::string filename = "data/" + std::to_string(n_ky) + "C_bot_prob_den.dat";
+        // // std::string filename = "data/" + std::to_string(n_ky) + "C_top_prob_den.dat";
+
         // std::ofstream output_file(filename);
 
-        // auto [evals, evecs] = calc.eigen_sparse_discrete_ky(kx, n_ky, 2, energy);
+        // // auto [evals, evecs] = calc.eigen_sparse_discrete_ky(kx, n_ky, 2, energy);
+        // auto [evals_full, evecs_full] = calc.eigen_discrete_ky(kx, n_ky);
+        // auto evals = evals_full.segment(n_ky * 2 * sys.n_bands - 1, 2);
+        // auto evecs = evecs_full.block(0, n_ky * 2 * sys.n_bands - 1, 2 * sys.n_bands * n_ky, 2);
         // if (evals(0) > evals(1))
         // {
         //     evals.reverseInPlace();

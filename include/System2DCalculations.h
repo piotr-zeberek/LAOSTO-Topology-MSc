@@ -26,20 +26,31 @@ public:
     Eigen::VectorXd eigenvals_discrete_ky(double kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_discrete_ky_normal(double kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_discrete(std::size_t n_kx, std::size_t n_ky);
+    Eigen::VectorXd eigenvals_discrete_normal(std::size_t n_kx, std::size_t n_ky);
+    
     Eigen::VectorXd eigenvals_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    Eigen::VectorXd eigenvals_sparse_discrete_ky_normal(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     Eigen::VectorXd eigenvals_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    Eigen::VectorXd eigenvals_sparse_discrete_normal(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
 
     Eigen::MatrixXcd eigenvecs(double kx, double ky);
     Eigen::MatrixXcd eigenvecs_normal(double kx, double ky);
     Eigen::MatrixXcd eigenvecs_discrete_ky(double kx, std::size_t n_ky);
+    Eigen::MatrixXcd eigenvecs_discrete_ky_normal(double kx, std::size_t n_ky);
     Eigen::MatrixXcd eigenvecs_discrete(std::size_t n_kx, std::size_t n_ky);
+    Eigen::MatrixXcd eigenvecs_discrete_normal(std::size_t n_kx, std::size_t n_ky);
 
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen(double kx, double ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_normal(double kx, double ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_ky(double kx, std::size_t n_ky);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_ky_normal(double kx, std::size_t n_ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete(std::size_t n_kx, std::size_t n_ky);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_normal(std::size_t n_kx, std::size_t n_ky);
+    
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_ky_normal(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_normal(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
 
     Eigen::VectorXd AbsDelta(double kx, double ky);
 

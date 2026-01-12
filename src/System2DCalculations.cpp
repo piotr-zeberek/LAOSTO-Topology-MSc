@@ -62,14 +62,29 @@ Eigen::VectorXd System2DCalculations::eigenvals_discrete(std::size_t n_kx, std::
     return _SAES.compute(_sys.HBdG_discrete(n_kx, n_ky), Eigen::EigenvaluesOnly).eigenvalues();
 };
 
+Eigen::VectorXd System2DCalculations::eigenvals_discrete_normal(std::size_t n_kx, std::size_t n_ky)
+{
+    return _SAES.compute(_sys.Hk_discrete(n_kx, n_ky), Eigen::EigenvaluesOnly).eigenvalues();
+};
+
 Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
     return eigenvals_sparse(_sys.HBdG_discrete_ky_sparse(kx, n_ky), n_eigs, sigma);
 };
 
+Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete_ky_normal(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+{
+    return eigenvals_sparse(_sys.Hk_discrete_ky_sparse(kx, n_ky), n_eigs, sigma);
+};
+
 Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
     return eigenvals_sparse(_sys.HBdG_discrete_sparse(n_kx, n_ky), n_eigs, sigma);
+};
+
+Eigen::VectorXd System2DCalculations::eigenvals_sparse_discrete_normal(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+{
+    return eigenvals_sparse(_sys.Hk_discrete_sparse(n_kx, n_ky), n_eigs, sigma);
 };
 
 Eigen::MatrixXcd System2DCalculations::eigenvecs(double kx, double ky)
@@ -87,9 +102,19 @@ Eigen::MatrixXcd System2DCalculations::eigenvecs_discrete_ky(double kx, std::siz
     return _SAES.compute(_sys.HBdG_discrete_ky(kx, n_ky)).eigenvectors();
 };
 
+Eigen::MatrixXcd System2DCalculations::eigenvecs_discrete_ky_normal(double kx, std::size_t n_ky)
+{
+    return _SAES.compute(_sys.Hk_discrete_ky(kx, n_ky)).eigenvectors();
+};
+
 Eigen::MatrixXcd System2DCalculations::eigenvecs_discrete(std::size_t n_kx, std::size_t n_ky)
 {
     return _SAES.compute(_sys.HBdG_discrete(n_kx, n_ky)).eigenvectors();
+};
+
+Eigen::MatrixXcd System2DCalculations::eigenvecs_discrete_normal(std::size_t n_kx, std::size_t n_ky)
+{
+    return _SAES.compute(_sys.Hk_discrete(n_kx, n_ky)).eigenvectors();
 };
 
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen(double kx, double ky)
@@ -110,9 +135,21 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_discret
     return std::make_pair(_SAES.eigenvalues(), _SAES.eigenvectors());
 };
 
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_discrete_ky_normal(double kx, std::size_t n_ky)
+{
+    _SAES.compute(_sys.Hk_discrete_ky(kx, n_ky));
+    return std::make_pair(_SAES.eigenvalues(), _SAES.eigenvectors());
+};
+
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_discrete(std::size_t n_kx, std::size_t n_ky)
 {
     _SAES.compute(_sys.HBdG_discrete(n_kx, n_ky));
+    return std::make_pair(_SAES.eigenvalues(), _SAES.eigenvectors());
+};
+
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_discrete_normal(std::size_t n_kx, std::size_t n_ky)
+{
+    _SAES.compute(_sys.Hk_discrete(n_kx, n_ky));
     return std::make_pair(_SAES.eigenvalues(), _SAES.eigenvectors());
 };
 
@@ -121,9 +158,19 @@ std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_
     return eigen_sparse(_sys.HBdG_discrete_ky_sparse(kx, n_ky), n_eigs, sigma);
 }
 
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_discrete_ky_normal(double kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+{
+    return eigen_sparse(_sys.Hk_discrete_ky_sparse(kx, n_ky), n_eigs, sigma);
+}
+
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
     return eigen_sparse(_sys.HBdG_discrete_sparse(n_kx, n_ky), n_eigs, sigma);
+}
+
+std::pair<Eigen::VectorXd, Eigen::MatrixXcd> System2DCalculations::eigen_sparse_discrete_normal(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs, double sigma)
+{
+    return eigen_sparse(_sys.Hk_discrete_sparse(n_kx, n_ky), n_eigs, sigma);
 }
 
 Eigen::VectorXd System2DCalculations::AbsDelta(double kx, double ky)

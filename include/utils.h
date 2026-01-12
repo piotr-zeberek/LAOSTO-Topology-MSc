@@ -44,6 +44,7 @@ constexpr inline double T2au(double field)
 
 Eigen::MatrixXcd kron(const Eigen::MatrixXcd &A, const Eigen::MatrixXcd &B);
 
+Eigen::VectorXd orbital_prob_den(const Eigen::VectorXcd &eigenvec, int n_orbitals);
 Eigen::VectorXd eigenvals_sparse(const SparseHamiltonian& sparse_H, std::size_t n_eigs, double sigma, double tol = meV2au(1e-9));
 std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse(const SparseHamiltonian& sparse_H, std::size_t n_eigs, double sigma, double tol = meV2au(1e-9));
 double pfaffian(const Eigen::MatrixXd &A);
