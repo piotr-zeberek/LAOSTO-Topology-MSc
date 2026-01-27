@@ -4,8 +4,6 @@
 
 #pragma once
 
-#define PYBIND11_HAS_NATIVE_ENUM
-
 #include "../pytypes.h"
 #include "common.h"
 #include "internals.h"
@@ -24,15 +22,36 @@ native_enum_missing_finalize_error_message(const std::string &enum_name_encoded)
     return "pybind11::native_enum<...>(\"" + enum_name_encoded + "\", ...): MISSING .finalize()";
 }
 
+// Internals for pybind11::native_enum; one native_enum_data object exists
+// inside each pybind11::native_enum and lives only for the duration of the
+// native_enum binding statement.
 class native_enum_data {
 public:
-    native_enum_data(const object &parent_scope,
+    native_enum_data(handle parent_scope_,
                      const char *enum_name,
                      const char *native_type_name,
-                     const std::type_index &enum_type_index)
+                     const char *class_doc,
+                     const native_enum_record &enum_record_)
         : enum_name_encoded{enum_name}, native_type_name_encoded{native_type_name},
-          enum_type_index{enum_type_index}, parent_scope(parent_scope), enum_name{enum_name},
-          native_type_name{native_type_name}, export_values_flag{false}, finalize_needed{false} {}
+          enum_type_index{*enum_record_.cpptype},
+          parent_scope(reinterpret_borrow<object>(parent_scope_)), enum_name{enum_name},
+          native_type_name{native_type_name}, class_doc(class_doc), export_values_flag{false},
+          finalize_needed{false} {
+        // Create the enum record capsule. It will be installed on the enum
+        // type object during finalize(). Its destructor removes the enum
+        // mapping from our internals, so that we won't try to convert to an
+        // enum type that's been destroyed.
+        enum_record = capsule(
+            new native_enum_record{enum_record_},
+            native_enum_record::attribute_name(),
+            +[](void *record_) {
+                auto *record = static_cast<native_enum_record *>(record_);
+                with_internals([&](internals &internals) {
+                    internals.native_enum_type_map.erase(*record->cpptype);
+                });
+                delete record;
+            });
+    }
 
     void finalize();
 
@@ -70,21 +89,17 @@ private:
     object parent_scope;
     str enum_name;
     str native_type_name;
+    std::string class_doc;
+    capsule enum_record;
 
 protected:
     list members;
-    list docs;
+    list member_docs;
     bool export_values_flag : 1; // Attention: It is best to keep the bools together.
 
 private:
     bool finalize_needed : 1;
 };
-
-inline void global_internals_native_enum_type_map_set_item(const std::type_index &enum_type_index,
-                                                           PyObject *py_enum) {
-    with_internals(
-        [&](internals &internals) { internals.native_enum_type_map[enum_type_index] = py_enum; });
-}
 
 inline handle
 global_internals_native_enum_type_map_get_item(const std::type_index &enum_type_index) {
@@ -179,6 +194,10 @@ inline void native_enum_data::finalize() {
     if (module_name) {
         py_enum.attr("__module__") = module_name;
     }
+    if (hasattr(parent_scope, "__qualname__")) {
+        const auto parent_qualname = parent_scope.attr("__qualname__").cast<std::string>();
+        py_enum.attr("__qualname__") = str(parent_qualname + "." + enum_name.cast<std::string>());
+    }
     parent_scope.attr(enum_name) = py_enum;
     if (export_values_flag) {
         for (auto member : members) {
@@ -191,10 +210,17 @@ inline void native_enum_data::finalize() {
             parent_scope.attr(member_name) = py_enum[member_name];
         }
     }
-    for (auto doc : docs) {
+    if (!class_doc.empty()) {
+        py_enum.attr("__doc__") = class_doc.c_str();
+    }
+    for (auto doc : member_docs) {
         py_enum[doc[int_(0)]].attr("__doc__") = doc[int_(1)];
     }
-    global_internals_native_enum_type_map_set_item(enum_type_index, py_enum.release().ptr());
+
+    py_enum.attr(native_enum_record::attribute_name()) = enum_record;
+    with_internals([&](internals &internals) {
+        internals.native_enum_type_map[enum_type_index] = py_enum.ptr();
+    });
 }
 
 PYBIND11_NAMESPACE_END(detail)

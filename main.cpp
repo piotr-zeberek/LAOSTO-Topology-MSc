@@ -12,8 +12,8 @@
 int main(int argc, char *argv[])
 {
     // ToyModel sys;
-    // LAOSTO sys;
-    LAOSTO_exts sys;
+    LAOSTO sys;
+    // LAOSTO_exts sys;
 
     System2DCalculations calc(sys);
     System2DCalculationsPrinter printer(calc);
@@ -22,13 +22,130 @@ int main(int argc, char *argv[])
     double LAOSTO_bottom_band = -2.83022409703;
     double LAOSTO_top_band = 3.33333333333;
 
-    sys.mu = meV2au(LAOSTO_bottom_band);
-    sys.Bx = T2au(0.0);
+    sys.mu = meV2au(LAOSTO_low_band);
+    sys.Bx = T2au(1.0);
     sys.By = T2au(0.0);
-    sys.Bz = T2au(1);
+    sys.Bz = T2au(0.0);
 
-    printer.printBandStructureSlice_orbital_type("data/BS_slice_orbital.dat", Eigen::VectorXd::LinSpaced(2001, -0.1, 0.1), 0);
+    // printer.printBandStructure_sparse_discrete_ky_orbital_type("data/BS_discrete_ky_orbital_type.dat",
+    //                                                            Eigen::VectorXd::LinSpaced(101, -0.02, 0.02),
+    //                                                            1001,
+    //                                                            60);
 
+    printer.printBandStructure_sparse_discrete_ky("data/BS_discrete_ky.dat",
+                                                  Eigen::VectorXd::LinSpaced(501, 0.0, 0.02),
+                                                  10000,
+                                                  60);
+
+    // // // print band structure across topological transition for various mu for n_ky = 12
+    // {
+    //     //     std::size_t n_ky = 12;
+    //     //     std::vector<double> mus_center = {-1.55963655672, 4.68065125903, 11.3054107315, 19.5773907141};
+    //     //     std::vector<double> min_Bxs = {0.6354, 0.154, 0.2101, 0.2327};
+    //     //     std::vector<std::string> mu_labels = {"-1.56_meV", "4.68_meV", "11.31_meV", "19.58_meV"};
+
+    //     std::size_t n_ky = 50;
+    //     std::vector<double> mus_center = {-44.2369483055, -34.4946838267, -18.6857587488, -1.93127197442};
+    //     std::vector<double> min_Bxs = {0.2614, 0.27, 0.3032, 0.375};
+    //     std::vector<std::string> mu_labels = {"-44.24_meV", "-34.49_meV", "-18.69_meV", "-1.93_meV"};
+
+    //     std::vector<std::string> Bx_labels = {"before", "transition", "after"};
+
+    //     double dBx = 0.05;
+    //     double kx_min = -0.02;
+    //     double kx_max = 0.02;
+    //     std::size_t num_kx = 1001;
+    //     std::size_t num_evals = 4;
+
+    //     for (std::size_t idx = 0; idx < mus_center.size(); ++idx)
+    //     {
+    //         sys.mu = meV2au(mus_center[idx]);
+    //         std::vector<double> Bxs = {min_Bxs[idx] - dBx, min_Bxs[idx], min_Bxs[idx] + dBx};
+
+    //         for (std::size_t jdx = 0; jdx < Bxs.size(); ++jdx)
+    //         {
+    //             double Bx = Bxs[jdx];
+    //             sys.Bx = T2au(Bx);
+
+    //             std::ofstream outfile("data/" + std::to_string(n_ky) + "C_BS_mu_" + mu_labels[idx] + "_Bx_" + Bx_labels[jdx] + ".dat");
+
+    //             outfile << "# mu = " << mus_center[idx] << " meV, Bx = " << Bx << " T, min_Bx = " << min_Bxs[idx] << " T\n";
+    //             outfile << "# kx(1/a) E (meV) el_Pxy_up el_Pxy_dn el_Pxz_up el_Pxz_dn el_Pyz_up el_Pyz_dn (6x same for holes) el_sx hole_sx el_sy hole_sy el_sz hole_sz el_Lx hole_Lx el_Ly hole_Ly el_Lz hole_Lz\n";
+    //             // outfile << std::setprecision(10);
+    //             // outfile << std::setw(15);
+
+    //             Eigen::VectorXd kx_vec = Eigen::VectorXd::LinSpaced(num_kx, kx_min, kx_max);
+
+    //             for (double kx : kx_vec)
+    //             {
+    //                 auto [evals, evecs] = calc.eigen_sparse_discrete_ky(kx, n_ky, num_evals);
+
+    //                 for (std::size_t i = 0; i < evals.size(); ++i)
+    //                 {
+    //                     double energy = evals(i);
+
+    //                     outfile << kx << " "
+    //                             << energy / meV2au(1.0) << " ";
+
+    //                     const auto &eigenvec = evecs.col(i);
+    //                     Eigen::VectorXd opdens = orbital_prob_den(eigenvec, sys.n_bands * 2);
+
+    //                     for (int j = 0; j < opdens.size(); ++j)
+    //                     {
+    //                         outfile << opdens(j) << " ";
+    //                     }
+
+    //                     for (const auto &op : {sys.I3sx, sys.I3sy, sys.I3sz, sys.Lxs0, sys.Lys0, sys.Lzs0})
+    //                     {
+    //                         double electron_ev_total = 0.0;
+    //                         double hole_ev_total = 0.0;
+
+    //                         for (int j = 0; j < n_ky; ++j)
+    //                         {
+    //                             auto electron_eigenvec = eigenvec.segment(j * sys.n_bands * 2, sys.n_bands);
+    //                             auto hole_eigenvec = eigenvec.segment(j * sys.n_bands * 2 + sys.n_bands, sys.n_bands);
+
+    //                             double electron_ev = electron_eigenvec.dot(op * electron_eigenvec).real();
+    //                             double hole_ev = hole_eigenvec.dot(-op.transpose() * hole_eigenvec).real();
+
+    //                             electron_ev_total += electron_ev;
+    //                             hole_ev_total += hole_ev;
+    //                         }
+
+    //                         outfile << electron_ev_total << " "
+    //                                 << hole_ev_total << " ";
+    //                     }
+
+    //                     outfile << "\n";
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
+    // // find optimal Bx for min gap at given mu
+    // std::vector<double> low_Bxs = {0.2, 0.2, 0.2, 0.3};
+    // std::vector<double> high_Bxs = {0.4, 0.4, 0.4, 0.5};
+
+    // for(std::size_t i = 0; i < mus_center.size(); ++i)
+    // {
+    //     std::cout << "mu: " << mus_center[i] << " meV" << std::endl;
+    //     sys.mu = meV2au(mus_center[i]);
+
+    //     double min_gap = 1e6;
+    //     double Bx_opt = 0.0;
+
+    //     for (double B_x = low_Bxs[i]; B_x <= high_Bxs[i]; B_x += 0.0001){
+    //         sys.Bx = T2au(B_x);
+    //         auto evals = calc.eigenvals_sparse_discrete_ky(0.0, n_ky, 2);
+    //         double gap = evals(1) - evals(0);
+    //         if (gap < min_gap){
+    //             min_gap = gap;
+    //             Bx_opt = B_x;
+    //         }
+    //     }
+    //     std::cout << " min gap: " << min_gap / meV2au(1.0) << " meV at Bx: " << std::setprecision(4) << Bx_opt << " T" << std::endl;
+    // }
 
     // 2D k-space Z2 from Pfaffian vs 2 params - CLI arguments
     // Z2 init_mu init_Bx init_By init_Bz kind_par1 n_par1 min_par1 max_par1 kind_par2 n_par2 min_par2 max_par2 output_filename

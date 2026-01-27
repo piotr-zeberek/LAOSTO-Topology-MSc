@@ -202,6 +202,22 @@ void System2DCalculationsPrinter::printBandStructure_sparse_discrete_ky_orbital_
     }
 }
 
+void System2DCalculationsPrinter::printBandStructure_sparse_discrete_ky_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs, double sigma)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto kx : kx_vec)
+    {
+        auto [evals, evecs] = _calc.eigen_sparse_discrete_ky_normal(kx, n_ky);
+        output_file << kx;
+        for (auto i = 0; i < evals.size(); ++i)
+        {
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands).transpose();
+        }
+        output_file << "\n";
+    }
+}
+
 void System2DCalculationsPrinter::printProbDen_sparse_discrete(const std::string &output_filename, std::size_t nk_x, std::size_t nk_y, double E)
 {
     std::ofstream output_file(output_filename);

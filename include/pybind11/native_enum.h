@@ -22,11 +22,12 @@ class native_enum : public detail::native_enum_data {
 public:
     using Underlying = typename std::underlying_type<EnumType>::type;
 
-    native_enum(const object &parent_scope,
+    native_enum(handle parent_scope,
                 const char *name,
-                const char *native_type_name = "enum.Enum")
+                const char *native_type_name,
+                const char *class_doc = "")
         : detail::native_enum_data(
-              parent_scope, name, native_type_name, std::type_index(typeid(EnumType))) {
+              parent_scope, name, native_type_name, class_doc, make_record()) {
         if (detail::get_local_type_info(typeid(EnumType)) != nullptr
             || detail::get_global_type_info(typeid(EnumType)) != nullptr) {
             pybind11_fail(
@@ -53,7 +54,7 @@ public:
         disarm_finalize_check("value after finalize");
         members.append(make_tuple(name, static_cast<Underlying>(value)));
         if (doc) {
-            docs.append(make_tuple(name, doc));
+            member_docs.append(make_tuple(name, doc));
         }
         arm_finalize_check(); // There was no exception.
         return *this;
@@ -61,6 +62,15 @@ public:
 
     native_enum(const native_enum &) = delete;
     native_enum &operator=(const native_enum &) = delete;
+
+private:
+    static detail::native_enum_record make_record() {
+        detail::native_enum_record ret;
+        ret.cpptype = &typeid(EnumType);
+        ret.size_bytes = sizeof(EnumType);
+        ret.is_signed = std::is_signed<Underlying>::value;
+        return ret;
+    }
 };
 
 PYBIND11_NAMESPACE_END(PYBIND11_NAMESPACE)

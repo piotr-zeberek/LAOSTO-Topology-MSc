@@ -437,7 +437,7 @@ Eigen::MatrixXcd kron(const Eigen::MatrixXcd &A, const Eigen::MatrixXcd &B)
     return res;
 }
 
-Eigen::VectorXd orbital_prob_den(const Eigen::VectorXcd &eigenvec, int n_orbitals)
+Eigen::VectorXd orbital_prob_den(const Eigen::VectorXcd &eigenvec, std::size_t n_orbitals)
 {
     Eigen::VectorXd prob_den = Eigen::VectorXd::Zero(n_orbitals);
 
