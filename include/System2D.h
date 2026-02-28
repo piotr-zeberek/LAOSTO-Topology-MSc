@@ -37,18 +37,22 @@ struct System2D
     // Normal Hamiltonian
     Hamiltonian Hk(double kx, double ky) const;
 
+    Hamiltonian Hk_discrete_kx(std::size_t n_kx, double ky) const;
     Hamiltonian Hk_discrete_ky(double kx, std::size_t n_ky) const;
     Hamiltonian Hk_discrete(std::size_t n_kx, std::size_t n_ky) const;
 
+    SparseHamiltonian Hk_discrete_kx_sparse(std::size_t n_kx, double ky) const;
     SparseHamiltonian Hk_discrete_ky_sparse(double kx, std::size_t n_ky) const;
     SparseHamiltonian Hk_discrete_sparse(std::size_t n_kx, std::size_t n_ky) const;
 
     // BdG Hamiltonian
     Hamiltonian HBdG(double kx, double ky) const;
 
+    Hamiltonian HBdG_discrete_kx(std::size_t n_kx, double ky) const;
     Hamiltonian HBdG_discrete_ky(double kx, std::size_t n_ky) const;
     Hamiltonian HBdG_discrete(std::size_t n_kx, std::size_t n_ky) const;
 
+    SparseHamiltonian HBdG_discrete_kx_sparse(std::size_t n_kx, double ky) const;
     SparseHamiltonian HBdG_discrete_ky_sparse(double kx, std::size_t n_ky) const;
     SparseHamiltonian HBdG_discrete_sparse(std::size_t n_kx, std::size_t n_ky) const;
 
@@ -61,6 +65,18 @@ protected:
     virtual std::vector<Triplet> Hk_triplets(double kx, double ky) const { return {}; }
     virtual std::vector<Triplet> Delta_triplets(double kx, double ky) const { return {}; }
     virtual std::vector<Triplet> mHmkT_triplets(double kx, double ky) const { return {}; }
+
+    //discrete in x direction
+    virtual std::vector<Triplet> Hk_discrete_kx_onsite_triplets(double x, double ky) const { return {}; }
+    virtual std::vector<Triplet> Hk_discrete_kx_hopping_p_triplets(double x, double ky) const { return {}; }
+
+    virtual std::vector<Triplet> Delta_discrete_kx_onsite_triplets(double x, double ky) const { return {}; }
+    virtual std::vector<Triplet> Delta_discrete_kx_hopping_p_triplets(double x, double ky) const { return {}; }
+
+    virtual std::vector<Triplet> Delta_dagger_discrete_kx_hopping_p_triplets(double x, double ky) const { return {}; }
+
+    virtual std::vector<Triplet> mHmkT_discrete_kx_onsite_triplets(double x, double ky) const { return {}; }
+    virtual std::vector<Triplet> mHmkT_discrete_kx_hopping_p_triplets(double x, double ky) const { return {}; }
 
     // discrete in y direction
     virtual std::vector<Triplet> Hk_discrete_ky_onsite_triplets(double kx, double y) const { return {}; }
@@ -100,6 +116,7 @@ protected:
 
     // // Triplets for the normal Hamiltonian
 private:
+    std::vector<Triplet> Hk_discrete_kx_triplets(std::size_t n_kx, double ky) const;
     std::vector<Triplet> Hk_discrete_ky_triplets(double kx, std::size_t n_ky) const;
     std::vector<Triplet> Hk_discrete_triplets(std::size_t n_kx, std::size_t n_ky) const;
 
@@ -109,6 +126,7 @@ private:
                                                 const std::vector<Triplet> &Delta_dagger_tr,
                                                 const std::vector<Triplet> &mHmkT_tr) const;
     std::vector<Triplet> HBdG_triplets(double kx, double ky) const;
+    std::vector<Triplet> HBdG_discrete_kx_triplets(std::size_t n_kx, double ky) const;
     std::vector<Triplet> HBdG_discrete_ky_triplets(double kx, std::size_t n_ky) const;
     std::vector<Triplet> HBdG_discrete_triplets(std::size_t n_kx, std::size_t n_ky) const;
 
@@ -116,6 +134,10 @@ private:
                          std::size_t col_offset,
                          std::vector<Triplet> &target,
                          const std::vector<Triplet> &source) const;
+
+    std::vector<Triplet> assemble_triplets_discrete_kx(const TripletFunc &onsite_tf,
+                                                       const TripletFunc &hopping_p_tf,
+                                                       std::size_t n_kx, double ky, std::size_t submatrix_size) const;                         
 
     std::vector<Triplet> assemble_triplets_discrete_ky(const TripletFunc &onsite_tf,
                                                        const TripletFunc &hopping_p_tf,

@@ -5,9 +5,19 @@ Hamiltonian System2D::Hk(double kx, double ky) const
     return assemble_matrix(Hk_triplets(kx, ky), n_bands, n_bands);
 }
 
+Hamiltonian System2D::Hk_discrete_kx(std::size_t n_kx, double ky) const
+{
+    return assemble_matrix(Hk_discrete_kx_triplets(n_kx, ky), n_bands * n_kx, n_bands * n_kx);
+}
+
 Hamiltonian System2D::Hk_discrete_ky(double kx, std::size_t n_ky) const
 {
     return assemble_matrix(Hk_discrete_ky_triplets(kx, n_ky), n_bands * n_ky, n_bands * n_ky);
+}
+
+SparseHamiltonian System2D::Hk_discrete_kx_sparse(std::size_t n_kx, double ky) const
+{
+    return assemble_sparse_matrix(Hk_discrete_kx_triplets(n_kx, ky), n_bands * n_kx, n_bands * n_kx);
 }
 
 SparseHamiltonian System2D::Hk_discrete_ky_sparse(double kx, std::size_t n_ky) const
@@ -30,9 +40,19 @@ Hamiltonian System2D::HBdG(double kx, double ky) const
     return assemble_matrix(HBdG_triplets(kx, ky), n_bands * 2, n_bands * 2);
 }
 
+Hamiltonian System2D::HBdG_discrete_kx(std::size_t n_kx, double ky) const
+{
+    return assemble_matrix(HBdG_discrete_kx_triplets(n_kx, ky), n_bands * 2 * n_kx, n_bands * 2 * n_kx);
+}
+
 Hamiltonian System2D::HBdG_discrete_ky(double kx, std::size_t n_ky) const
 {
     return assemble_matrix(HBdG_discrete_ky_triplets(kx, n_ky), n_bands * 2 * n_ky, n_bands * 2 * n_ky);
+}
+
+SparseHamiltonian System2D::HBdG_discrete_kx_sparse(std::size_t n_kx, double ky) const
+{
+    return assemble_sparse_matrix(HBdG_discrete_kx_triplets(n_kx, ky), n_bands * 2 * n_kx, n_bands * 2 * n_kx);
 }
 
 SparseHamiltonian System2D::HBdG_discrete_ky_sparse(double kx, std::size_t n_ky) const
@@ -68,6 +88,20 @@ std::vector<Triplet> System2D::negate_triplets(const std::vector<Triplet> &tripl
         negated_triplets.emplace_back(tr.row(), tr.col(), -tr.value());
     }
     return negated_triplets;
+}
+
+std::vector<Triplet> System2D::Hk_discrete_kx_triplets(std::size_t n_kx, double ky) const
+{
+    std::size_t submatrix_size = n_bands;
+
+    std::vector<Triplet> triplets = assemble_triplets_discrete_kx(
+        [this](double x, double ky)
+        { return Hk_discrete_kx_onsite_triplets(x, ky); },
+        [this](double x, double ky)
+        { return Hk_discrete_kx_hopping_p_triplets(x, ky); },
+        n_kx, ky, submatrix_size);
+
+    return triplets;
 }
 
 std::vector<Triplet> System2D::Hk_discrete_ky_triplets(double kx, std::size_t n_ky) const
@@ -138,6 +172,41 @@ std::vector<Triplet> System2D::HBdG_triplets(double kx, double ky) const
     std::vector<Triplet> mHmkT_tr = mHmkT_triplets(kx, ky);
 
     return join_triplets_for_HBdG(Hk_tr, Delta_tr, {}, mHmkT_tr);
+}
+
+std::vector<Triplet> System2D::HBdG_discrete_kx_triplets(std::size_t n_kx, double ky) const
+{
+    std::size_t submatrix_size = n_bands * 2;
+
+    std::vector<Triplet> Hk_tr = assemble_triplets_discrete_kx(
+        [this](double x, double ky)
+        { return Hk_discrete_kx_onsite_triplets(x, ky); },
+        [this](double x, double ky)
+        { return Hk_discrete_kx_hopping_p_triplets(x, ky); },
+        n_kx, ky, submatrix_size);
+
+    std::vector<Triplet> Delta_tr = assemble_triplets_discrete_kx(
+        [this](double x, double ky)
+        { return Delta_discrete_kx_onsite_triplets(x, ky); },
+        [this](double x, double ky)
+        { return Delta_discrete_kx_hopping_p_triplets(x, ky); },
+        n_kx, ky, submatrix_size);
+
+    std::vector<Triplet> Delta_dagger_tr = assemble_triplets_discrete_kx(
+        [this](double x, double ky)
+        { return std::vector<Triplet>{}; },
+        [this](double x, double ky)
+        { return Delta_dagger_discrete_kx_hopping_p_triplets(x, ky); },
+        n_kx, ky, submatrix_size);
+
+    std::vector<Triplet> mHmkT_tr = assemble_triplets_discrete_kx(
+        [this](double x, double ky)
+        { return mHmkT_discrete_kx_onsite_triplets(x, ky); },
+        [this](double x, double ky)
+        { return mHmkT_discrete_kx_hopping_p_triplets(x, ky); },
+        n_kx, ky, submatrix_size);
+
+    return join_triplets_for_HBdG(Hk_tr, Delta_tr, Delta_dagger_tr, mHmkT_tr);
 }
 
 std::vector<Triplet> System2D::HBdG_discrete_ky_triplets(double kx, std::size_t n_ky) const
@@ -242,6 +311,41 @@ void System2D::append_triplets(std::size_t row_offset, std::size_t col_offset,
     {
         target.emplace_back(t.row() + row_offset, t.col() + col_offset, t.value());
     }
+}
+
+std::vector<Triplet> System2D::assemble_triplets_discrete_kx(const TripletFunc &onsite_tf,
+                                                             const TripletFunc &hopping_p_tf,
+                                                             std::size_t n_kx, double ky, std::size_t submatrix_size) const
+{
+    std::vector<Triplet> triplets;
+    triplets.reserve(2 * n_kx * (onsite_tf(0.0, ky).size() + hopping_p_tf(0.0, ky).size()));
+
+    double x = 0.0;
+
+    int is = 0;
+
+    int j = 0;
+    int js = 0;
+
+    for (int i = 0; i < n_kx; ++i)
+    {
+        x = dx * i;
+
+        is = i * submatrix_size;
+
+        // osite
+        j = i;
+        js = j * submatrix_size;
+        append_triplets(is, js, triplets, onsite_tf(x, ky));
+
+        // hopping_p
+        j = i + 1;
+        js = j * submatrix_size;
+        if (j % n_kx != 0)
+            append_triplets(is, js, triplets, hopping_p_tf(x, ky));
+    }
+
+    return triplets;
 }
 
 std::vector<Triplet> System2D::assemble_triplets_discrete_ky(const TripletFunc &onsite_tf,

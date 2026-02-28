@@ -17,6 +17,31 @@ std::vector<Triplet> ToyModel::mHmkT_triplets(double kx, double ky) const
     return generate_triplets(-Hk_mat(-kx, -ky).transpose(), true);
 }
 
+std::vector<Triplet> ToyModel::Hk_discrete_kx_onsite_triplets(double x, double ky) const
+{
+    return generate_triplets(Hk_discrete_kx_onsite(x, ky), true);
+}
+
+std::vector<Triplet> ToyModel::Hk_discrete_kx_hopping_p_triplets(double x, double ky) const
+{
+    return generate_triplets(Hk_discrete_kx_hopping_p(x, ky));
+}
+
+std::vector<Triplet> ToyModel::Delta_discrete_kx_onsite_triplets(double x, double ky) const
+{
+    return Delta_triplets(x, ky);
+}
+
+std::vector<Triplet> ToyModel::mHmkT_discrete_kx_onsite_triplets(double x, double ky) const
+{
+    return generate_triplets(mHmkT_discrete_kx_onsite(x, ky), true);
+}
+
+std::vector<Triplet> ToyModel::mHmkT_discrete_kx_hopping_p_triplets(double x, double ky) const
+{
+    return generate_triplets(mHmkT_discrete_kx_hopping_p(x, ky));
+}
+
 std::vector<Triplet> ToyModel::Hk_discrete_ky_onsite_triplets(double kx, double y) const
 {
     return generate_triplets(Hk_discrete_ky_onsite(kx, y), true);
@@ -88,9 +113,35 @@ Hamiltonian ToyModel::Delta(double kx, double ky) const
     return delta_SC * isy;
 }
 
+Hamiltonian ToyModel::Hk_discrete_kx_onsite(double x, double ky) const
+{
+    return Hkin_discrete_kx(ky) + HZeeman() + HRashba_discrete_kx(ky) - mu * Eigen::MatrixXcd::Identity(n_bands, n_bands);
+}
+
+Hamiltonian ToyModel::Hk_discrete_kx_hopping_p(double x, double ky) const
+{
+    Hamiltonian H0 = -tx * s0;
+    Hamiltonian HRSO = -0.5 * 1i * delta_RSO_x * sy;
+
+    return H0 + HRSO;
+}
+
+Hamiltonian ToyModel::mHmkT_discrete_kx_onsite(double x, double ky) const
+{
+    return -Hkin_discrete_kx(ky) - HZeeman().transpose() + HRashba_discrete_kx(ky).transpose() + mu * Eigen::MatrixXcd::Identity(n_bands, n_bands);
+}
+
+Hamiltonian ToyModel::mHmkT_discrete_kx_hopping_p(double x, double ky) const
+{
+    Hamiltonian H0 = -tx * s0;
+    Hamiltonian HRSO = -0.5 * 1i * delta_RSO_x * sy;
+
+    return -H0 + HRSO.transpose();
+}
+
 Hamiltonian ToyModel::Hk_discrete_ky_onsite(double kx, double y) const
 {
-    return Hkin(kx) + HZeeman() + HRashba(kx) - mu * Eigen::MatrixXcd::Identity(n_bands, n_bands);
+    return Hkin_discrete_ky(kx) + HZeeman() + HRashba_discrete_ky(kx) - mu * Eigen::MatrixXcd::Identity(n_bands, n_bands);
 }
 
 Hamiltonian ToyModel::Hk_discrete_ky_hopping_p(double kx, double y) const
@@ -103,7 +154,7 @@ Hamiltonian ToyModel::Hk_discrete_ky_hopping_p(double kx, double y) const
 
 Hamiltonian ToyModel::mHmkT_discrete_ky_onsite(double kx, double y) const
 {
-    return -Hkin(kx) - HZeeman().transpose() + HRashba(kx).transpose() + mu * Eigen::MatrixXcd::Identity(n_bands, n_bands);
+    return -Hkin_discrete_ky(kx) - HZeeman().transpose() + HRashba_discrete_ky(kx).transpose() + mu * Eigen::MatrixXcd::Identity(n_bands, n_bands);
 }
 
 Hamiltonian ToyModel::mHmkT_discrete_ky_hopping_p(double kx, double y) const
@@ -155,9 +206,14 @@ Hamiltonian ToyModel::Hkin(double kx, double ky) const
     return Ek(kx, ky) * s0;
 }
 
-Hamiltonian ToyModel::Hkin(double kx) const
+Hamiltonian ToyModel::Hkin_discrete_kx(double ky) const
 {
-    return Ek(kx) * s0;
+    return Ek_discrete_kx(ky) * s0;
+}
+
+Hamiltonian ToyModel::Hkin_discrete_ky(double kx) const
+{
+    return Ek_discrete_ky(kx) * s0;
 }
 
 Hamiltonian ToyModel::Hkin() const
@@ -179,7 +235,12 @@ Hamiltonian ToyModel::HRashba(double kx, double ky) const
     return delta_RSO_y * std::sin(ky) * sx - delta_RSO_x * std::sin(kx) * sy;
 }
 
-Hamiltonian ToyModel::HRashba(double kx) const
+Hamiltonian ToyModel::HRashba_discrete_kx(double ky) const
+{
+    return delta_RSO_y * std::sin(ky) * sx;
+}
+
+Hamiltonian ToyModel::HRashba_discrete_ky(double kx) const
 {
     return -delta_RSO_x * std::sin(kx) * sy;
 }

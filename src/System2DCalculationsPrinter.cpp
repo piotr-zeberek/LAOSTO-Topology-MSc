@@ -53,6 +53,30 @@ void System2DCalculationsPrinter::printBandStructureSlice_normal(const std::stri
     }
 }
 
+void System2DCalculationsPrinter::printBandStructure_discrete_kx(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto evals = _calc.eigenvals_discrete_kx(n_kx, ky);
+
+        output_file << ky << " " << evals.transpose() / meV2au(1.0) << std::endl;
+    }
+}
+
+void System2DCalculationsPrinter::printBandStructure_discrete_kx_normal(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto evals = _calc.eigenvals_discrete_kx_normal(n_kx, ky);
+
+        output_file << ky << " " << evals.transpose() / meV2au(1.0) << std::endl;
+    }
+}
+
 void System2DCalculationsPrinter::printBandStructure_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky)
 {
     std::ofstream output_file(output_filename);
@@ -74,6 +98,30 @@ void System2DCalculationsPrinter::printBandStructure_discrete_ky_normal(const st
         auto evals = _calc.eigenvals_discrete_ky_normal(kx, n_ky);
 
         output_file << kx << " " << evals.transpose() / meV2au(1.0) << std::endl;
+    }
+}
+
+void System2DCalculationsPrinter::printBandStructure_sparse_discrete_kx(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs, double sigma)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto evals = _calc.eigenvals_sparse_discrete_kx(n_kx, ky, n_eigs, sigma);
+
+        output_file << ky << " " << evals.transpose() / meV2au(1.0) << std::endl;
+    }
+}
+
+void System2DCalculationsPrinter::printBandStructure_sparse_discrete_kx_normal(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs, double sigma)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto evals = _calc.eigenvals_sparse_discrete_kx_normal(n_kx, ky, n_eigs, sigma);
+
+        output_file << ky << " " << evals.transpose() / meV2au(1.0) << std::endl;
     }
 }
 
@@ -114,7 +162,7 @@ void System2DCalculationsPrinter::printBandStructure_orbital_type(const std::str
 
             for (auto i = 0; i < evals.size(); ++i)
             {
-                output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands*2).transpose();
+                output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands * 2).transpose();
             }
             output_file << "\n";
         }
@@ -132,7 +180,7 @@ void System2DCalculationsPrinter::printBandStructureSlice_orbital_type(const std
         output_file << k;
         for (auto i = 0; i < evals.size(); ++i)
         {
-            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands*2).transpose();
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands * 2).transpose();
         }
         output_file << "\n";
     }
@@ -155,6 +203,39 @@ void System2DCalculationsPrinter::printBandStructureSlice_normal_orbital_type(co
         output_file << "\n";
     }
 }
+
+void System2DCalculationsPrinter::printBandStructure_discrete_kx_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto [evals, evecs] = _calc.eigen_discrete_kx(n_kx, ky);
+        output_file << ky;
+        for (auto i = 0; i < evals.size(); ++i)
+        {
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands * 2).transpose();
+        }
+        output_file << "\n";
+    }
+}
+
+void System2DCalculationsPrinter::printBandStructure_discrete_kx_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto [evals, evecs] = _calc.eigen_discrete_kx_normal(n_kx, ky);
+        output_file << ky;
+        for (auto i = 0; i < evals.size(); ++i)
+        {
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands).transpose();
+        }
+        output_file << "\n";
+    }
+}
+
 void System2DCalculationsPrinter::printBandStructure_discrete_ky_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky)
 {
     std::ofstream output_file(output_filename);
@@ -165,14 +246,14 @@ void System2DCalculationsPrinter::printBandStructure_discrete_ky_orbital_type(co
         output_file << kx;
         for (auto i = 0; i < evals.size(); ++i)
         {
-            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands*2).transpose();
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands * 2).transpose();
         }
         output_file << "\n";
     }
 }
 void System2DCalculationsPrinter::printBandStructure_discrete_ky_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky)
 {
-        std::ofstream output_file(output_filename);
+    std::ofstream output_file(output_filename);
 
     for (auto kx : kx_vec)
     {
@@ -186,19 +267,50 @@ void System2DCalculationsPrinter::printBandStructure_discrete_ky_normal_orbital_
         output_file << "\n";
     }
 }
+
+void System2DCalculationsPrinter::printBandStructure_sparse_discrete_kx_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs, double sigma)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto [evals, evecs] = _calc.eigen_sparse_discrete_kx(n_kx, ky, n_eigs, sigma);
+        output_file << ky;
+        for (auto i = 0; i < evals.size(); ++i)
+        {
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands * 2).transpose();
+        }
+        output_file << "\n";
+    }
+}
+void System2DCalculationsPrinter::printBandStructure_sparse_discrete_kx_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs, double sigma)
+{
+    std::ofstream output_file(output_filename);
+
+    for (auto ky : ky_vec)
+    {
+        auto [evals, evecs] = _calc.eigen_sparse_discrete_kx_normal(n_kx, ky, n_eigs, sigma);
+        output_file << ky;
+        for (auto i = 0; i < evals.size(); ++i)
+        {
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands).transpose();
+        }
+        output_file << "\n";
+    }
+}
 void System2DCalculationsPrinter::printBandStructure_sparse_discrete_ky_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs, double sigma)
 {
     std::ofstream output_file(output_filename);
 
     for (auto kx : kx_vec)
     {
-        auto [evals, evecs] = _calc.eigen_sparse_discrete_ky(kx, n_ky);
+        auto [evals, evecs] = _calc.eigen_sparse_discrete_ky(kx, n_ky, n_eigs, sigma);
         output_file << kx;
         for (auto i = 0; i < evals.size(); ++i)
         {
-            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands*2).transpose();
+            output_file << " " << evals(i) / meV2au(1.0) << " " << orbital_prob_den(evecs.col(i), _calc.system().n_bands * 2).transpose();
         }
-        output_file << "\n";
+        output_file << std::endl;
     }
 }
 
@@ -208,7 +320,7 @@ void System2DCalculationsPrinter::printBandStructure_sparse_discrete_ky_normal_o
 
     for (auto kx : kx_vec)
     {
-        auto [evals, evecs] = _calc.eigen_sparse_discrete_ky_normal(kx, n_ky);
+        auto [evals, evecs] = _calc.eigen_sparse_discrete_ky_normal(kx, n_ky, n_eigs, sigma);
         output_file << kx;
         for (auto i = 0; i < evals.size(); ++i)
         {

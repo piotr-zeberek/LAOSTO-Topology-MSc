@@ -12,16 +12,24 @@ public:
     void printBandStructure(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
     void printBandStructureSlice(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
     void printBandStructureSlice_normal(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
+    void printBandStructure_discrete_kx(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx);
+    void printBandStructure_discrete_kx_normal(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx);
     void printBandStructure_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky);
     void printBandStructure_discrete_ky_normal(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky);
+    void printBandStructure_sparse_discrete_kx(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs = 30, double sigma = 0.0);
+    void printBandStructure_sparse_discrete_kx_normal(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs = 30, double sigma = 0.0);
     void printBandStructure_sparse_discrete_ky(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     void printBandStructure_sparse_discrete_ky_normal(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
 
     void printBandStructure_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
     void printBandStructureSlice_orbital_type(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
     void printBandStructureSlice_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &k_vec, int axis, double k0 = 0.0);
+    void printBandStructure_discrete_kx_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx);
+    void printBandStructure_discrete_kx_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx);
     void printBandStructure_discrete_ky_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky);
     void printBandStructure_discrete_ky_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky);
+    void printBandStructure_sparse_discrete_kx_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs = 30, double sigma = 0.0);
+    void printBandStructure_sparse_discrete_kx_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &ky_vec, std::size_t n_kx, std::size_t n_eigs = 30, double sigma = 0.0);
     void printBandStructure_sparse_discrete_ky_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     void printBandStructure_sparse_discrete_ky_normal_orbital_type(const std::string &output_filename, const Eigen::VectorXd &kx_vec, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
 

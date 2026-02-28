@@ -68,6 +68,16 @@ protected:
     std::vector<Triplet> Delta_triplets(double kx, double ky) const;
     std::vector<Triplet> mHmkT_triplets(double kx, double ky) const;
 
+    // discrete in x direction
+    std::vector<Triplet> Hk_discrete_kx_onsite_triplets(double x, double ky) const;
+    std::vector<Triplet> Hk_discrete_kx_hopping_p_triplets(double x, double ky) const;
+
+    std::vector<Triplet> Delta_discrete_kx_onsite_triplets(double x, double ky) const;
+    // std::vector<Triplet> Delta_discrete_kx_hopping_p_triplets(double x, double ky) const;
+
+    std::vector<Triplet> mHmkT_discrete_kx_onsite_triplets(double x, double ky) const;
+    std::vector<Triplet> mHmkT_discrete_kx_hopping_p_triplets(double x, double ky) const;
+
     // discrete in y direction
     std::vector<Triplet> Hk_discrete_ky_onsite_triplets(double kx, double y) const;
     std::vector<Triplet> Hk_discrete_ky_hopping_p_triplets(double kx, double y) const;
@@ -126,6 +136,13 @@ public:
     Hamiltonian Hk_mat(double kx, double ky) const;
     Hamiltonian Delta(double kx, double ky) const;
 
+    // discretized in kx
+    Hamiltonian Hk_discrete_kx_onsite(double x, double ky) const;
+    Hamiltonian Hk_discrete_kx_hopping_p(double x, double ky) const;
+
+    Hamiltonian mHmkT_discrete_kx_onsite(double x, double ky) const;
+    Hamiltonian mHmkT_discrete_kx_hopping_p(double x, double ky) const;
+
     // discretized in ky
     Hamiltonian Hk_discrete_ky_onsite(double kx, double y) const;
     Hamiltonian Hk_discrete_ky_hopping_p(double kx, double y) const;
@@ -150,25 +167,58 @@ public:
     Hamiltonian mHmkT_discrete_hopping_pm(double x, double y) const;
 
     Hamiltonian Hkin(double kx, double ky) const;
-    Hamiltonian Hkin(double kx) const;
+    Hamiltonian Hkin_discrete_kx(double ky) const;
+    Hamiltonian Hkin_discrete_ky(double kx) const;
     Hamiltonian Hkin() const;
     Hamiltonian HZeeman() const;
     Hamiltonian HAtomicSO() const;
     Hamiltonian HRashba(double kx, double ky) const;
-    Hamiltonian HRashba(double kx) const;
+    Hamiltonian HRashba_discrete_kx(double ky) const;
+    Hamiltonian HRashba_discrete_ky(double kx) const;
 
     double Ekxy(double kx, double ky) const
     {
         return 2.0 * tl * (2.0 - std::cos(kx) - std::cos(ky)) - delta_E;
     }
 
+    double Ekxy_discrete_kx(double ky) const
+    {
+        return 2.0 * tl * (2.0 - std::cos(ky)) - delta_E;
+    }
+
+    double Ekxy_discrete_ky(double kx) const
+    {
+        return 2.0 * tl * (2.0 - std::cos(kx)) - delta_E;
+    }
+
     double Ekxz(double kx, double ky) const
     {
         return 2.0 * tl * (1.0 - std::cos(kx)) + 2.0 * th * (1.0 - std::cos(ky));
     }
+
+    double Ekxz_discrete_kx(double ky) const
+    {
+        return 2.0 * tl + 2.0 * th * (1.0 - std::cos(ky));
+    }
+
+    double Ekxz_discrete_ky(double kx) const
+    {
+        return 2.0 * tl * (1.0 - std::cos(kx)) + 2.0 * th;
+    }
+
     double Ekyz(double kx, double ky) const
     {
         return 2.0 * tl * (1.0 - std::cos(ky)) + 2.0 * th * (1.0 - std::cos(kx));
+    }
+
+    double Ekyz_discrete_kx(double ky) const
+    {
+        return 2.0 * tl * (1.0 - std::cos(ky)) + 2.0 * th;
+    }
+
+    double Ekyz_discrete_ky(double kx) const
+    {
+        return 2.0 * tl + 2.0 * th * (1.0 - std::cos(kx));
     }
 
     double Ek_h(double kx, double ky) const
@@ -176,21 +226,12 @@ public:
         return 2.0 * td * std::sin(kx) * std::sin(ky);
     }
 
-    double Ekxy(double kx) const
+    std::complex<double> Ek_h_discrete_kx(double ky) const
     {
-        return 2.0 * tl * (2.0 - std::cos(kx)) - delta_E;
+        return -1i * td * std::sin(ky);
     }
 
-    double Ekxz(double kx) const
-    {
-        return 2.0 * tl * (1.0 - std::cos(kx)) + 2.0 * th;
-    }
-    double Ekyz(double kx) const
-    {
-        return 2.0 * tl + 2.0 * th * (1.0 - std::cos(kx));
-    }
-
-    std::complex<double> Ek_h(double kx) const
+    std::complex<double> Ek_h_discrete_ky(double kx) const
     {
         return -1i * td * std::sin(kx);
     }

@@ -23,11 +23,15 @@ public:
 
     Eigen::VectorXd eigenvals(double kx, double ky);
     Eigen::VectorXd eigenvals_normal(double kx, double ky);
+    Eigen::VectorXd eigenvals_discrete_kx(std::size_t n_kx, double ky);
+    Eigen::VectorXd eigenvals_discrete_kx_normal(std::size_t n_kx, double ky);
     Eigen::VectorXd eigenvals_discrete_ky(double kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_discrete_ky_normal(double kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_discrete(std::size_t n_kx, std::size_t n_ky);
     Eigen::VectorXd eigenvals_discrete_normal(std::size_t n_kx, std::size_t n_ky);
     
+    Eigen::VectorXd eigenvals_sparse_discrete_kx(std::size_t n_kx, double ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    Eigen::VectorXd eigenvals_sparse_discrete_kx_normal(std::size_t n_kx, double ky, std::size_t n_eigs = 30, double sigma = 0.0);
     Eigen::VectorXd eigenvals_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     Eigen::VectorXd eigenvals_sparse_discrete_ky_normal(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     Eigen::VectorXd eigenvals_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
@@ -35,6 +39,8 @@ public:
 
     Eigen::MatrixXcd eigenvecs(double kx, double ky);
     Eigen::MatrixXcd eigenvecs_normal(double kx, double ky);
+    Eigen::MatrixXcd eigenvecs_discrete_kx(std::size_t n_kx, double ky);
+    Eigen::MatrixXcd eigenvecs_discrete_kx_normal(std::size_t n_kx, double ky);
     Eigen::MatrixXcd eigenvecs_discrete_ky(double kx, std::size_t n_ky);
     Eigen::MatrixXcd eigenvecs_discrete_ky_normal(double kx, std::size_t n_ky);
     Eigen::MatrixXcd eigenvecs_discrete(std::size_t n_kx, std::size_t n_ky);
@@ -42,11 +48,15 @@ public:
 
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen(double kx, double ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_normal(double kx, double ky);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_kx(std::size_t n_kx, double ky);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_kx_normal(std::size_t n_kx, double ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_ky(double kx, std::size_t n_ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_ky_normal(double kx, std::size_t n_ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete(std::size_t n_kx, std::size_t n_ky);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_discrete_normal(std::size_t n_kx, std::size_t n_ky);
     
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_kx(std::size_t n_kx, double ky, std::size_t n_eigs = 30, double sigma = 0.0);
+    std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_kx_normal(std::size_t n_kx, double ky, std::size_t n_eigs = 30, double sigma = 0.0);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_ky(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete_ky_normal(double kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
     std::pair<Eigen::VectorXd, Eigen::MatrixXcd> eigen_sparse_discrete(std::size_t n_kx, std::size_t n_ky, std::size_t n_eigs = 30, double sigma = 0.0);
@@ -65,6 +75,7 @@ public:
     double ChernNumberUsingWilsonLoop(std::size_t n_dense, std::size_t n_sparse, double k_val);
     // double ChernNumberUsingMatrixBerryCurvatureTrace(std::size_t n_dense, std::size_t n_sparse, double k_val, double CN_skip = 1e3);
 
+    double ChernNumberUsingWilsonLoop_discrete_kx(std::size_t n_dense, std::size_t n_sparse, double k_val, std::size_t n_kx);
     double ChernNumberUsingWilsonLoop_discrete_ky(std::size_t n_dense, std::size_t n_sparse, double k_val, std::size_t n_ky);
 
     std::vector<std::vector<Point2D>> FSContours(double E = 0.0, double dk = 1e-4, double eps = 1e-9, double kx_min = -M_PI, double kx_max = 0.0, std::size_t n_kx = 1001);
