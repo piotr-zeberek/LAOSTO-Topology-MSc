@@ -73,15 +73,12 @@ public:
     Eigen::VectorXd ChernNumbersUsingAbelianBerryCurvature(std::size_t n_dense, std::size_t n_sparse, double k_val);
     double ChernNumberUsingBerryCurvatureFromWilsonLoop(std::size_t n_dense, std::size_t n_sparse, double k_val);
     double ChernNumberUsingWilsonLoop(std::size_t n_dense, std::size_t n_sparse, double k_val);
-    // double ChernNumberUsingMatrixBerryCurvatureTrace(std::size_t n_dense, std::size_t n_sparse, double k_val, double CN_skip = 1e3);
 
     double ChernNumberUsingWilsonLoop_discrete_kx(std::size_t n_dense, std::size_t n_sparse, double k_val, std::size_t n_kx);
     double ChernNumberUsingWilsonLoop_discrete_ky(std::size_t n_dense, std::size_t n_sparse, double k_val, std::size_t n_ky);
 
     std::vector<std::vector<Point2D>> FSContours(double E = 0.0, double dk = 1e-4, double eps = 1e-9, double kx_min = -M_PI, double kx_max = 0.0, std::size_t n_kx = 1001);
 
-    // Eigen::VectorXd calcChernNumbersDenserCenter(std::size_t n_dense, std::size_t n_sparse, double k_val);
-    // Eigen::VectorXd calcChernNumbersWithCustomGrid(const Eigen::VectorXd &kx, const Eigen::VectorXd &ky);
 
 private:
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXcd> _SAES;

@@ -37,11 +37,9 @@ public:
 
     void printAbsDelta(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
     void printAbsDeltaAlongContour(const std::string &output_filename, const std::vector<Point2D> &contour);
-    void printDeltaFromUnitaryTransformation(const std::string &delta_filename, const std::string &DT_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
 
     void printAbelianBerryCurvature(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
     void printBerryCurvatureFromWilsonLoop(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec);
-    void printMatrixBerryCurvatureTrace(const std::string &output_filename, const Eigen::VectorXd &kx_vec, const Eigen::VectorXd &ky_vec, double BC_trace_skip = 1e3);
 
     void printWilsonLoopSpectrum(const std::string &output_filename, std::size_t nk, std::size_t nk_loop, double k_max = M_PI);
 

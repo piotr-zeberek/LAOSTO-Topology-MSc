@@ -55,13 +55,7 @@ ProjectConfig.h
 build/
 plot/
 *.zip
-LAOSTO/
-check_model/
 Eigen/
 unsupported/
-Z2_bin/
+pybind11/
 .cache
-ToyModel_Z2/
-LAOSTO_Z2/
-LAOSTO_exts_Z2/
-Z2_bin/
